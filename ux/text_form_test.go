@@ -113,7 +113,7 @@ var _ = Describe("Text Formatting tests", func() {
 			}
 		})
 
-		It("gathers intput for the form from stdin", func() {
+		It("gathers input for the form from stdin", func() {
 
 			expectedValues := map[string]string{
 				"attrib12":   "value for attrib12",
@@ -142,25 +142,49 @@ var _ = Describe("Text Formatting tests", func() {
 
 			outputReader := bufio.NewScanner(stdOutReader)
 			expectReader := bufio.NewScanner(bytes.NewBufferString(testFormInputPrompts))
+
+			actual := ""
+			read := true
+			readOutput := func(expected string) {
+				if !outputReader.Scan() {
+					Fail(fmt.Sprintf("TextFrom GetInput() did not output expected string '%s'.", expected))
+				}
+				actual = outputReader.Text()
+				logger.TraceMessage("expect> %s\n", actual)
+			}
+
 			for expectReader.Scan() {
 				expected := expectReader.Text()
+				if i := strings.Index(expected, "<<"); i != -1 {
 
-				if strings.HasPrefix(expected, "<<") {
-					input := expected[2:] + "\n"
-					fmt.Fprint(os.Stdout, input)
-					stdInWriter.WriteString(input)
+					prompt := expected[:i]
+					input := expected[i+2:]
+					stdInWriter.WriteString(input + "\n")
+					if read {
+						readOutput(expected)
+					}
 
-					if outputReader.Scan() {
-						logger.TraceMessage("expect> %s\n", outputReader.Text())
+					if strings.HasPrefix(actual, prompt) {
+						actual = actual[len(prompt):]
+						read = false
+
+					} else {
+						Fail(
+							fmt.Sprintf(
+								"actual line read does not contain prompt as prefix: '%s' !> '%s",
+								actual, prompt,
+							),
+						)
 					}
 
 				} else {
-					if !outputReader.Scan() {
-						Fail(fmt.Sprintf("TextFrom GetInput() did not output expected string '%s'.", expected))
+					if read {
+						readOutput(expected)
 					}
-					actual := outputReader.Text()
-					logger.TraceMessage("expect> %s\n", actual)
+
 					Expect(expected).To(Equal(actual))
+					actual = ""
+					read = true
 				}
 			}
 
@@ -249,9 +273,9 @@ description for group 1
 3. Attrib 13 - description for attrib13. It will be sourced from the environment
                variables ATTRIB13_ENV1, ATTRIB13_ENV2 if not provided.
 --------------------------------------------------------------------------------
-<<2
+Please select one of the above ? <<2
 --------------------------------------------------------------------------------
-<<value for attrib12
+Attrib 12 : <<value for attrib12
 
 description for group 2
 ================================================================================
@@ -259,28 +283,28 @@ description for group 2
 --------------------------------------------------------------------------------
 2. Attrib 122 - description for attrib122.
 --------------------------------------------------------------------------------
-<<2
+Please select one of the above ? <<2
 --------------------------------------------------------------------------------
-<<value for attrib122
+Attrib 122 : <<value for attrib122
 
 Attrib 1221 - description for attrib1221.
 --------------------------------------------------------------------------------
-<<value for attrib1221
+: <<value for attrib1221
 
 Attrib 131 - description for attrib131.
 --------------------------------------------------------------------------------
-<<value for attrib131
+: <<value for attrib131
 
 Attrib 1311 - description for attrib1311.
 --------------------------------------------------------------------------------
-<<value for attrib1311
+: <<value for attrib1311
 
 Attrib 1312 - description for attrib1312.
 --------------------------------------------------------------------------------
-<<value for attrib1312
+: <<value for attrib1312
 
 Attrib 14 - description for attrib14.
 --------------------------------------------------------------------------------
-<<value for attrib14
+: <<value for attrib14
 
 ================================================================================`
