@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	test_data "github.com/mevansam/goforms/test/forms"
+	test_data "github.com/mevansam/goforms/test/data"
 )
 
 var _ = Describe("Input Fields", func() {
