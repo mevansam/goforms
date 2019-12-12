@@ -1,3 +1,3 @@
 # GoForms
 
-This golang library implements a generic framework for gathering data via a form template. Once defined this template can be used for gathering inputs from the command line or a GUI in a consistent manner.
+This Golang library implements a generic framework for gathering data via a form template. Once defined this template can be used for gathering inputs from the command line or a GUI in a consistent manner. The framework implements a data input flow by establishing relationships between the data entry fields to create an intuitive flow for data input. It is designed to work smoothly regardless of whether the form input is via a GUI or a CLI.
