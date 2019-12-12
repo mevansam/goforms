@@ -59,10 +59,11 @@ var _ = Describe("Input Collection", func() {
 				"attrib11":   []string{},
 				"attrib12":   []string{"group2", "attrib131"},
 				"attrib13":   []string{"attrib131", "group3"},
-				"attrib14":   []string{},
+				"attrib14":   []string{"attrib141"},
 				"attrib121":  []string{},
 				"attrib122":  []string{"attrib1221"},
 				"attrib131":  []string{"attrib1311", "attrib1312"},
+				"attrib141":  []string{},
 				"attrib1221": []string{},
 				"attrib1311": []string{},
 				"attrib1312": []string{},
@@ -123,6 +124,7 @@ var _ = Describe("Input Collection", func() {
 				"attrib132",
 				"attrib133",
 				"attrib14",
+				"attrib141",
 			}
 
 			ff := ig.InputFields()

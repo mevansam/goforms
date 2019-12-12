@@ -156,108 +156,116 @@ func (tf *TextForm) GetInput(
 				input = inputs[j-1]
 				prompt = input.DisplayName() + " : "
 
-			} else {
-
+			} else if len(inputs) == 1 {
 				// If only a single input is available within
 				// then skip showing the container input options
 				input = inputs[0]
 				promptInput(input)
+
+			} else {
+				input = nil
 			}
 
-		} else {
+		} else if input.Enabled() {
 			promptInput(input)
 			prompt = ": "
-		}
-
-		inputField = input.(*forms.InputField)
-		value = inputField.Value()
-
-		valueFromFile, filePaths = inputField.ValueFromFile()
-		if valueFromFile {
-
-			// if value for the field is sourced from a file then
-			// create a list of auto-completion hints with default
-			// values from the environment
-			if value != nil {
-				hintValues = append(filePaths, []string{"", "[saved]"}...)
-			} else {
-				hintValues = append(filePaths, "")
-			}
-			suggestion = hintValues[len(hintValues)-1]
 
 		} else {
+			input = nil
+		}
 
-			if values := inputField.AcceptedValues(); values != nil {
-				// if values are restrcted to a given list then
-				// create a list of auto-completion hints only
-				// with those values
-				hintValues = append(*values)
+		if input != nil {
+			inputField = input.(*forms.InputField)
+			value = inputField.Value()
+
+			valueFromFile, filePaths = inputField.ValueFromFile()
+			if valueFromFile {
+
+				// if value for the field is sourced from a file then
+				// create a list of auto-completion hints with default
+				// values from the environment
 				if value != nil {
-					suggestion = *value
+					hintValues = append(filePaths, []string{"", "[saved]"}...)
 				} else {
-					suggestion = ""
-				}
-
-			} else {
-				// create a list of auto-completion hints from
-				// the environment variable associated with the
-				// input field along with any values retrieved
-				// from any field hints set in the input group.
-				hintValues = []string{}
-
-				// set of added values used to ensure
-				// the same values are not added twice
-				valueSet := map[string]bool{"": true}
-				if value != nil && len(*value) > 0 {
-					valueSet[*value] = true
-				}
-
-				// add values sourced from environment to completion list
-				for _, e := range inputField.EnvVars() {
-					if envVal, exists = os.LookupEnv(e); exists {
-						if _, exists = valueSet[envVal]; !exists {
-							hintValues = append(hintValues, envVal)
-							valueSet[envVal] = true
-						}
-					}
-				}
-
-				// add values sourced from hints to completion list
-				if fieldHintValues, err = tf.inputGroup.GetFieldValueHints(input.Name()); err != nil {
-					logger.DebugMessage(
-						"Error retrieving hint values for field '%s': '%s'",
-						input.Name(), err.Error())
-				}
-				hintValues = append(append(hintValues, fieldHintValues...), "")
-				if value != nil {
-					hintValues = append(hintValues, *value)
+					hintValues = append(filePaths, "")
 				}
 				suggestion = hintValues[len(hintValues)-1]
+
+			} else {
+
+				if values := inputField.AcceptedValues(); values != nil {
+					// if values are restrcted to a given list then
+					// create a list of auto-completion hints only
+					// with those values
+					hintValues = append(*values)
+					if value != nil {
+						suggestion = *value
+					} else {
+						suggestion = ""
+					}
+
+				} else {
+					// create a list of auto-completion hints from
+					// the environment variable associated with the
+					// input field along with any values retrieved
+					// from any field hints set in the input group.
+					hintValues = []string{}
+
+					// set of added values used to ensure
+					// the same values are not added twice
+					valueSet := map[string]bool{"": true}
+					if value != nil && len(*value) > 0 {
+						valueSet[*value] = true
+					}
+
+					// add values sourced from environment to completion list
+					for _, e := range inputField.EnvVars() {
+						if envVal, exists = os.LookupEnv(e); exists {
+							if _, exists = valueSet[envVal]; !exists {
+								hintValues = append(hintValues, envVal)
+								valueSet[envVal] = true
+							}
+						}
+					}
+
+					// add values sourced from hints to completion list
+					if fieldHintValues, err = tf.inputGroup.GetFieldValueHints(input.Name()); err != nil {
+						logger.DebugMessage(
+							"Error retrieving hint values for field '%s': '%s'",
+							input.Name(), err.Error())
+					}
+					hintValues = append(append(hintValues, fieldHintValues...), "")
+					if value != nil {
+						hintValues = append(hintValues, *value)
+					}
+					suggestion = hintValues[len(hintValues)-1]
+				}
 			}
-		}
 
-		line.SetCompleter(func(line string) []string {
-			return hintValues
-		})
-		if response, err = line.PromptWithSuggestion(prompt, suggestion, -1); err != nil {
-			return err
-		}
-
-		// set input with entered value
-		if valueFromFile && response == "[saved]" {
-			if cursor, err = cursor.SetDefaultInput(input.Name()); err != nil {
+			line.SetCompleter(func(line string) []string {
+				return hintValues
+			})
+			if response, err = line.PromptWithSuggestion(prompt, suggestion, -1); err != nil {
 				return err
 			}
-		} else {
-			if cursor, err = cursor.SetInput(input.Name(), response); err != nil {
-				return err
+
+			// set input with entered value
+			if valueFromFile && response == "[saved]" {
+				if cursor, err = cursor.SetDefaultInput(input.Name()); err != nil {
+					return err
+				}
+			} else {
+				if cursor, err = cursor.SetInput(input.Name(), response); err != nil {
+					return err
+				}
 			}
-		}
-		if valueFromFile {
-			fmt.Printf("Value from file: \n%s\n", *inputField.Value())
+			if valueFromFile {
+				fmt.Printf("Value from file: \n%s\n", *inputField.Value())
+			}
+
+			fmt.Println()
 		}
 
-		fmt.Println()
 		cursor = cursor.NextInput()
 	}
 

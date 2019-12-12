@@ -8,10 +8,13 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/mevansam/goforms/forms"
 	"github.com/mevansam/goforms/ux"
 	"github.com/mevansam/goutils/logger"
+	"github.com/mevansam/goutils/utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -100,7 +103,12 @@ var _ = Describe("Text Formatting tests", func() {
 
 		var testFormInput = func(testFormInputPrompts string, expectedValues map[string]string) {
 
+			var wg sync.WaitGroup
+			wg.Add(1)
+
 			go func() {
+				defer wg.Done()
+				defer GinkgoRecover()
 
 				tf, err := ux.NewTextForm(
 					"Input Data Form for 'input-form'",
@@ -110,9 +118,7 @@ var _ = Describe("Text Formatting tests", func() {
 				if err == nil {
 					err = tf.GetInput(false, 2, 80)
 				}
-				if err != nil {
-					fmt.Println(err.Error())
-				}
+				Expect(err).NotTo(HaveOccurred())
 			}()
 
 			outputReader := bufio.NewScanner(stdOutReader)
@@ -157,7 +163,7 @@ var _ = Describe("Text Formatting tests", func() {
 						readOutput(expected)
 					}
 
-					Expect(expected).To(Equal(actual))
+					Expect(actual).To(Equal(expected))
 					actual = ""
 					read = true
 				}
@@ -167,6 +173,8 @@ var _ = Describe("Text Formatting tests", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(values)).To(Equal(len(expectedValues)))
 			Expect(reflect.DeepEqual(expectedValues, values)).To(BeTrue())
+
+			Expect(utils.WaitTimeout(&wg, time.Second)).To(BeTrue())
 		}
 
 		BeforeEach(func() {
@@ -207,7 +215,8 @@ var _ = Describe("Text Formatting tests", func() {
 				"attrib131":  "value for attrib131",
 				"attrib1311": "value for attrib1311",
 				"attrib1312": "value for attrib1312",
-				"attrib14":   "value for attrib14",
+				"attrib14":   "value for attrib14 - X",
+				"attrib141":  "value for attrib141",
 			}
 
 			testFormInput(testFormInputPrompts2, expectedValues)
@@ -270,7 +279,8 @@ const testFormReferenceOutput = `  Input Data Form for 'input-form'
 
       * Attrib 133 - description for attrib133.
 
-  * Attrib 14 - description for attrib14.`
+  * Attrib 14  - description for attrib14.
+  * Attrib 141 - description for attrib141.`
 
 const testFormInputPrompts1 = `Input Data Form for 'input-form'
 ================================
@@ -370,6 +380,10 @@ Attrib 1312 - description for attrib1312.
 
 Attrib 14 - description for attrib14.
 --------------------------------------------------------------------------------
-: <<value for attrib14
+: <<value for attrib14 - X
+
+Attrib 141 - description for attrib141.
+--------------------------------------------------------------------------------
+: <<value for attrib141
 
 ================================================================================`

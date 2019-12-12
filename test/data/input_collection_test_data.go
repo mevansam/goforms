@@ -31,7 +31,7 @@ func NewTestInputCollection() *forms.InputCollection {
 	//                           -> attrib1312 -> 0 X
 	//            -> attrib132 3 -> X
 	//            -> attrib133 3 -> X
-	// attrib14 0 -> X
+	// attrib14 0 -> attrib141 0
 
 	ig.NewInputContainer(
 		/* name */ "group1",
@@ -158,6 +158,16 @@ func NewTestInputCollection() *forms.InputCollection {
 		/* defaultValue */ "default value for attrib133",
 		/* envVars */ []string{},
 		/* dependsOn */ []string{"attrib13"},
+	)
+	Expect(err).NotTo(HaveOccurred())
+	_, err = ig.NewInputField(
+		/* name */ "attrib141",
+		/* displayName */ "Attrib 141",
+		/* description */ "description for attrib141.",
+		/* inputType */ forms.String,
+		/* valueFromFile */ false,
+		/* envVars */ []string{},
+		/* dependsOn */ []string{"attrib14=value for attrib14 - X"},
 	)
 	Expect(err).NotTo(HaveOccurred())
 
