@@ -98,32 +98,7 @@ var _ = Describe("Text Formatting tests", func() {
 			inputGroup *forms.InputGroup
 		)
 
-		BeforeEach(func() {
-
-			inputGroup = test_data.NewTestInputCollection().Group("input-form")
-
-			// Bind fields to map of values so
-			// that form values can be saved
-			inputValues := make(map[string]*string)
-			for _, f := range inputGroup.InputFields() {
-				s := new(string)
-				inputValues[f.Name()] = s
-				err = f.SetValueRef(s)
-				Expect(err).ToNot(HaveOccurred())
-			}
-		})
-
-		It("gathers input for the form from stdin", func() {
-
-			expectedValues := map[string]string{
-				"attrib12":   "value for attrib12",
-				"attrib122":  "value for attrib122",
-				"attrib1221": "value for attrib1221",
-				"attrib131":  "value for attrib131",
-				"attrib1311": "value for attrib1311",
-				"attrib1312": "value for attrib1312",
-				"attrib14":   "value for attrib14",
-			}
+		var testFormInput = func(testFormInputPrompts string, expectedValues map[string]string) {
 
 			go func() {
 
@@ -192,6 +167,50 @@ var _ = Describe("Text Formatting tests", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(values)).To(Equal(len(expectedValues)))
 			Expect(reflect.DeepEqual(expectedValues, values)).To(BeTrue())
+		}
+
+		BeforeEach(func() {
+
+			inputGroup = test_data.NewTestInputCollection().Group("input-form")
+
+			// Bind fields to map of values so
+			// that form values can be saved
+			inputValues := make(map[string]*string)
+			for _, f := range inputGroup.InputFields() {
+				s := new(string)
+				inputValues[f.Name()] = s
+				err = f.SetValueRef(s)
+				Expect(err).ToNot(HaveOccurred())
+			}
+		})
+
+		It("gathers input for the form from stdin #1", func() {
+
+			expectedValues := map[string]string{
+				"attrib12":   "value for attrib12",
+				"attrib122":  "value for attrib122",
+				"attrib1221": "value for attrib1221",
+				"attrib131":  "value for attrib131",
+				"attrib1311": "value for attrib1311",
+				"attrib1312": "value for attrib1312",
+				"attrib14":   "value for attrib14",
+			}
+
+			testFormInput(testFormInputPrompts1, expectedValues)
+		})
+
+		It("gathers input for the form from stdin #2", func() {
+
+			expectedValues := map[string]string{
+				"attrib12":   "value for attrib12 - A",
+				"attrib121":  "value for attrib121",
+				"attrib131":  "value for attrib131",
+				"attrib1311": "value for attrib1311",
+				"attrib1312": "value for attrib1312",
+				"attrib14":   "value for attrib14",
+			}
+
+			testFormInput(testFormInputPrompts2, expectedValues)
 		})
 	})
 })
@@ -253,7 +272,7 @@ const testFormReferenceOutput = `  Input Data Form for 'input-form'
 
   * Attrib 14 - description for attrib14.`
 
-const testFormInputPrompts = `Input Data Form for 'input-form'
+const testFormInputPrompts1 = `Input Data Form for 'input-form'
 ================================
 
 test group description
@@ -290,6 +309,52 @@ Attrib 122 : <<value for attrib122
 Attrib 1221 - description for attrib1221.
 --------------------------------------------------------------------------------
 : <<value for attrib1221
+
+Attrib 131 - description for attrib131.
+--------------------------------------------------------------------------------
+: <<value for attrib131
+
+Attrib 1311 - description for attrib1311.
+--------------------------------------------------------------------------------
+: <<value for attrib1311
+
+Attrib 1312 - description for attrib1312.
+--------------------------------------------------------------------------------
+: <<value for attrib1312
+
+Attrib 14 - description for attrib14.
+--------------------------------------------------------------------------------
+: <<value for attrib14
+
+================================================================================`
+
+const testFormInputPrompts2 = `Input Data Form for 'input-form'
+================================
+
+test group description
+
+CONFIGURATION DATA INPUT
+================================================================================
+
+description for group 1
+================================================================================
+1. Attrib 11 - description for attrib11. It will be sourced from the environment
+               variables ATTRIB11_ENV1, ATTRIB11_ENV2, ATTRIB11_ENV3 if not
+               provided.
+--------------------------------------------------------------------------------
+2. Attrib 12 - description for attrib12. It will be sourced from the environment
+               variable ATTRIB12_ENV1 if not provided.
+--------------------------------------------------------------------------------
+3. Attrib 13 - description for attrib13. It will be sourced from the environment
+               variables ATTRIB13_ENV1, ATTRIB13_ENV2 if not provided.
+--------------------------------------------------------------------------------
+Please select one of the above ? <<2
+--------------------------------------------------------------------------------
+Attrib 12 : <<value for attrib12 - A
+
+Attrib 121 - description for attrib121.
+--------------------------------------------------------------------------------
+: <<value for attrib121
 
 Attrib 131 - description for attrib131.
 --------------------------------------------------------------------------------

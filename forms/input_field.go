@@ -32,6 +32,8 @@ type InputField struct {
 
 	sensitive bool
 
+	postFieldConditions []postCondition
+
 	acceptedValues             *[]string
 	acceptedValueSet           map[string]bool
 	acceptedValuesErrorMessage string
@@ -41,6 +43,11 @@ type InputField struct {
 
 	inclusionFilterErrorMessage,
 	exclusionFilterErrorMessage string
+}
+
+type postCondition struct {
+	field  *InputField
+	values []string
 }
 
 // in: inclusionFilter - field value must match this regex
@@ -113,6 +120,32 @@ func (f *InputField) Sensitive() bool {
 // out: whether the field is optional as it has a default value
 func (f *InputField) Optional() bool {
 	return f.defaultValue != nil
+}
+
+// out: whether this field is enabled
+func (f *InputField) Enabled() bool {
+
+	var (
+		value *string
+	)
+
+	enabled := true
+	if len(f.postFieldConditions) > 0 {
+		for _, c := range f.postFieldConditions {
+			if value = c.field.Value(); value != nil {
+				hasValue := false
+				for _, v := range c.values {
+					if *value == v {
+						hasValue = true
+						break
+					}
+				}
+				enabled = hasValue
+				break
+			}
+		}
+	}
+	return enabled
 }
 
 // out: environment variables associated with this field

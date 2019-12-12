@@ -113,7 +113,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		/* inputType */ forms.String,
 		/* valueFromFile */ false,
 		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib12"},
+		/* dependsOn */ []string{"attrib12=value for attrib12|value for attrib12 - A"},
 	)
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputGroupField(
@@ -124,7 +124,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		/* inputType */ forms.String,
 		/* valueFromFile */ false,
 		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib12"},
+		/* dependsOn */ []string{"attrib12=value for attrib12|value for attrib12 - B"},
 	)
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(

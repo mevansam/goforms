@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/mevansam/goutils/utils"
 )
@@ -30,6 +31,7 @@ type Input interface {
 
 	Type() InputType
 	Inputs() []Input
+	Enabled() bool
 
 	getGroupId() int
 }
@@ -330,6 +332,8 @@ func (g *InputGroup) newInputField(
 		inputSet: false,
 		valueRef: nil,
 
+		postFieldConditions: []postCondition{},
+
 		acceptedValues:  nil,
 		inclusionFilter: nil,
 		exclusionFilter: nil,
@@ -344,23 +348,35 @@ func (g *InputGroup) newInputField(
 		var (
 			addToDepends func(
 				input Input,
-				names map[string]bool,
+				names map[string]string,
 			) (bool, error)
 
-			names map[string]bool
+			names map[string]string
 			added bool
 		)
 
 		addToDepends = func(
 			input Input,
-			names map[string]bool,
+			names map[string]string,
 		) (bool, error) {
 			for _, i := range input.Inputs() {
 
-				if _, exists := names[i.Name()]; exists && i.Type() != Container {
+				if value, exists := names[i.Name()]; exists && i.Type() != Container {
 					f := i.(*InputField)
 					if err = f.addInputField(field); err != nil {
 						return false, err
+					}
+					if len(value) > 0 {
+						// add post condition for field which will
+						// be skipped unless dependent field equals
+						// the given value
+						field.postFieldConditions = append(
+							field.postFieldConditions,
+							postCondition{
+								field:  f,
+								values: strings.Split(value, "|"),
+							},
+						)
 					}
 
 					delete(names, i.Name())
@@ -377,9 +393,19 @@ func (g *InputGroup) newInputField(
 			return false, nil
 		}
 
-		names = make(map[string]bool)
+		names = make(map[string]string)
 		for _, n := range dependsOn {
-			names[n] = true
+			tuple := strings.Split(n, "=")
+			if len(tuple) == 1 {
+				names[tuple[0]] = ""
+			} else if len(tuple) > 2 {
+				return nil,
+					fmt.Errorf(
+						"field '%s' has a depends that does not comfirm to format 'name[=value]': %v",
+						field.name, tuple)
+			} else {
+				names[tuple[0]] = tuple[1]
+			}
 		}
 		if added, err = addToDepends(g, names); !added && err == nil {
 			err = fmt.Errorf(
@@ -468,6 +494,11 @@ func (g *InputGroup) Type() InputType {
 // out: a list of all inputs for the group
 func (g *InputGroup) Inputs() []Input {
 	return g.inputs
+}
+
+// out: whether this group is enabled
+func (f *InputGroup) Enabled() bool {
+	return true
 }
 
 // out: return the group id

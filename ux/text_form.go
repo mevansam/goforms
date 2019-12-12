@@ -83,6 +83,16 @@ func (tf *TextForm) GetInput(
 	fmt.Println(doubleDivider)
 	fmt.Println()
 
+	promptInput := func(input forms.Input) {
+
+		fmt.Println(tf.getInputLongDescription(
+			input, showDefaults, len(input.DisplayName()),
+			"", "", 0, width,
+		))
+		fmt.Println(singleDivider)
+		prompt = ": "
+	}
+
 	cursor = forms.NewInputCursor(tf.inputGroup)
 	cursor = cursor.NextInput()
 
@@ -93,58 +103,69 @@ func (tf *TextForm) GetInput(
 
 		if input.Type() == forms.Container {
 
-			fmt.Println(input.Description())
-			fmt.Println(doubleDivider)
-
-			// normalize display name length
-			// of all input group fields
-			nameLen = 0
-			for _, ii := range input.Inputs() {
-				l = len(ii.DisplayName())
-				if nameLen < l {
-					nameLen = l
+			ii := input.Inputs()
+			inputs := make([]forms.Input, 0, len(ii))
+			for _, i := range ii {
+				if i.Enabled() {
+					inputs = append(inputs, i)
 				}
 			}
 
-			// show list of possible inputs an prompt
-			// which input should be requested
-			inputs := input.Inputs()
-			options := make([]string, len(inputs))
+			if len(inputs) > 1 {
+				fmt.Println(input.Description())
+				fmt.Println(doubleDivider)
 
-			for i, ii := range inputs {
+				// normalize display name length
+				// of all input group fields
+				nameLen = 0
+				for _, ii := range input.Inputs() {
+					l = len(ii.DisplayName())
+					if nameLen < l {
+						nameLen = l
+					}
+				}
 
-				options[i] = strconv.Itoa(i + 1)
-				fmt.Println(tf.getInputLongDescription(
-					ii, showDefaults, l, "",
-					fmt.Sprintf("%s. ", options[i]), 0, width,
-				))
+				// show list of possible inputs and prompt
+				// which input should be requested
+				options := make([]string, len(inputs))
+
+				for i, ii := range inputs {
+
+					options[i] = strconv.Itoa(i + 1)
+					fmt.Println(tf.getInputLongDescription(
+						ii, showDefaults, l, "",
+						fmt.Sprintf("%s. ", options[i]), 0, width,
+					))
+					fmt.Println(singleDivider)
+				}
+
+				line.SetCompleter(func(line string) (c []string) {
+					// allow selection of options using tab
+					return options
+				})
+				for {
+					if response, err = line.Prompt("Please select one of the above ? "); err != nil {
+						return err
+					}
+					if j, err = strconv.Atoi(response); err == nil {
+						break
+					}
+				}
+
 				fmt.Println(singleDivider)
-			}
+				input = inputs[j-1]
+				prompt = input.DisplayName() + " : "
 
-			line.SetCompleter(func(line string) (c []string) {
-				// allow selection of options using tab
-				return options
-			})
-			for {
-				if response, err = line.Prompt("Please select one of the above ? "); err != nil {
-					return err
-				}
-				if j, err = strconv.Atoi(response); err == nil {
-					break
-				}
-			}
+			} else {
 
-			fmt.Println(singleDivider)
-			input = inputs[j-1]
-			prompt = input.DisplayName() + " : "
+				// If only a single input is available within
+				// then skip showing the container input options
+				input = inputs[0]
+				promptInput(input)
+			}
 
 		} else {
-
-			fmt.Println(tf.getInputLongDescription(
-				input, showDefaults, len(input.DisplayName()),
-				"", "", 0, width,
-			))
-			fmt.Println(singleDivider)
+			promptInput(input)
 			prompt = ": "
 		}
 

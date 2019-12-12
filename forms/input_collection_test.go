@@ -203,7 +203,7 @@ var _ = Describe("Input Collection", func() {
 		It("navigates path option #2", func() {
 
 			expectedValues := map[string]string{
-				"attrib12":   "value for attrib12",
+				"attrib12":   "value for attrib12 - B",
 				"attrib122":  "value for attrib122",
 				"attrib1221": "value for attrib1221",
 				"attrib131":  "value for attrib131",
@@ -216,10 +216,14 @@ var _ = Describe("Input Collection", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cursor = advanceCursorPositionAndValidate(cursor, "group1")
-			cursor, err = cursor.SetInput("attrib12", "value for attrib12")
+			cursor, err = cursor.SetInput("attrib12", "value for attrib12 - B")
 			Expect(err).ToNot(HaveOccurred())
 
+			// field attrib121 expects value of attrib12 = 'value for attrib12 - A'
 			cursor = advanceCursorPositionAndValidate(cursor, "group2")
+			cursor, err = cursor.SetInput("attrib121", "value for attrib121")
+			Expect(err).To(HaveOccurred())
+
 			cursor, err = cursor.SetInput("attrib122", "value for attrib122")
 			Expect(err).ToNot(HaveOccurred())
 

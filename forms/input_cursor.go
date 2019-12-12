@@ -135,6 +135,11 @@ func (c *InputCursor) setInput(name string, value *string) (*InputCursor, error)
 	}
 
 	inputField = currInput.(*InputField)
+	if !inputField.Enabled() {
+		return cursor, fmt.Errorf(
+			"input field '%s' is disabled", name)
+	}
+
 	inputField.SetInput()
 	if value != nil {
 		if err = inputField.SetValue(value); err != nil {
