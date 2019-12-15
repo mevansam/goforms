@@ -539,7 +539,7 @@ func (g *InputGroup) BindFields(target interface{}) error {
 			if err = field.SetValueRef(v.Elem().Field(i).Addr().Interface()); err != nil {
 				return err
 			}
-		} else if _, ok = f.Tag.Lookup("form_container"); ok {
+		} else if f.Type.Kind() == reflect.Struct {
 
 			if err = g.BindFields(v.Elem().Field(i).Addr().Interface()); err != nil {
 				return err

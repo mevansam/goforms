@@ -130,7 +130,7 @@ var _ = Describe("Input Groups", func() {
 			Expect(*value).To(Equal("attrib13 #2"))
 		})
 
-		FIt("binds an external data structure to the form", func() {
+		It("binds an external data structure to the form", func() {
 
 			var (
 				field *forms.InputField
@@ -145,7 +145,7 @@ var _ = Describe("Input Groups", func() {
 				Group2 struct {
 					Attrib121 string `form_field:"attrib121"`
 					Attrib122 string `form_field:"attrib122"`
-				} `form_container:""`
+				}
 			}{
 				Attrib11: &attrib11Value,
 				Attrib12: nil,
