@@ -3,6 +3,7 @@ package forms
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -39,6 +40,8 @@ type Input interface {
 // InputForm abstraction
 type InputForm interface {
 	Input
+
+	BindFields(target interface{}) error
 
 	AddFieldValueHint(name, hint string) error
 	GetFieldValueHints(name string) ([]string, error)
@@ -507,6 +510,39 @@ func (g *InputGroup) getGroupId() int {
 }
 
 // interface: InputForm
+
+// in: binds the given target data structure to this input form's fields
+func (g *InputGroup) BindFields(target interface{}) error {
+
+	var (
+		err  error
+		ok   bool
+		name string
+
+		field *InputField
+	)
+
+	v := reflect.ValueOf(target)
+	if v.Kind() != reflect.Ptr {
+		return fmt.Errorf("target must be a pointer to a struct")
+	}
+
+	t := reflect.Indirect(v).Type()
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+
+		if name, ok = f.Tag.Lookup("form_field"); ok {
+
+			if field, err = g.GetInputField(name); err != nil {
+				return err
+			}
+			if err = field.SetValueRef(v.Elem().Field(i).Addr().Interface()); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
 
 // in: name - name of the field for which a hint should be added
 // in: hint - the hint which is a URL with the following patterns.
