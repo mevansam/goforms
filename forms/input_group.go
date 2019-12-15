@@ -539,6 +539,11 @@ func (g *InputGroup) BindFields(target interface{}) error {
 			if err = field.SetValueRef(v.Elem().Field(i).Addr().Interface()); err != nil {
 				return err
 			}
+		} else if _, ok = f.Tag.Lookup("form_container"); ok {
+
+			if err = g.BindFields(v.Elem().Field(i).Addr().Interface()); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
