@@ -197,7 +197,7 @@ func (tf *TextForm) GetInput(
 					// if values are restrcted to a given list then
 					// create a list of auto-completion hints only
 					// with those values
-					hintValues = append(*values)
+					hintValues = append(values)
 					if value != nil {
 						suggestion = *value
 					} else {

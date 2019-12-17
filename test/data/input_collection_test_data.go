@@ -2,6 +2,7 @@ package forms
 
 import (
 	"github.com/mevansam/goforms/forms"
+	"github.com/mevansam/goutils/utils"
 
 	. "github.com/onsi/gomega"
 )
@@ -52,154 +53,138 @@ func NewTestInputCollection() *forms.InputCollection {
 		/* groupId */ 3,
 	)
 
-	_, err = ig.NewInputGroupField(
-		/* name */ "attrib11",
-		/* displayName */ "Attrib 11",
-		/* description */ "description for attrib11.",
-		/* groupId */ 1,
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib11",
+		DisplayName: "Attrib 11",
+		Description: "description for attrib11.",
+		GroupID:     1,
+		InputType:   forms.String,
+		EnvVars: []string{
 			"ATTRIB11_ENV1",
 			"ATTRIB11_ENV2",
 			"ATTRIB11_ENV3",
 		},
-		/* dependsOn */ []string{},
-	)
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputGroupField(
-		/* name */ "attrib12",
-		/* displayName */ "Attrib 12",
-		/* description */ "description for attrib12.",
-		/* groupId */ 1,
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib12",
+		DisplayName: "Attrib 12",
+		Description: "description for attrib12.",
+		GroupID:     1,
+		InputType:   forms.String,
+		EnvVars: []string{
 			"ATTRIB12_ENV1",
 		},
-		/* dependsOn */ []string{},
-	)
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputGroupField(
-		/* name */ "attrib13",
-		/* displayName */ "Attrib 13",
-		/* description */ "description for attrib13.",
-		/* groupId */ 1,
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib13",
+		DisplayName: "Attrib 13",
+		Description: "description for attrib13.",
+		GroupID:     1,
+		InputType:   forms.String,
+		EnvVars: []string{
 			"ATTRIB13_ENV1",
 			"ATTRIB13_ENV2",
 		},
-		/* dependsOn */ []string{},
-	)
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputFieldWithDefaultValue(
-		/* name */ "attrib14",
-		/* displayName */ "Attrib 14",
-		/* description */ "description for attrib14.",
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* defaultValue */ "default value for attrib14",
-		/* envVars */ []string{},
-		/* dependsOn */ []string{},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:         "attrib14",
+		DisplayName:  "Attrib 14",
+		Description:  "description for attrib14.",
+		InputType:    forms.String,
+		DefaultValue: utils.PtrToStr("default value for attrib14"),
+		EnvVars:      []string{},
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputGroupField(
-		/* name */ "attrib121",
-		/* displayName */ "Attrib 121",
-		/* description */ "description for attrib121.",
-		/* groupId */ 2,
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib12=value for attrib12|value for attrib12 - A"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib121",
+		DisplayName: "Attrib 121",
+		Description: "description for attrib121.",
+		GroupID:     2,
+		InputType:   forms.String,
+		EnvVars:     []string{},
+		DependsOn:   []string{"attrib12=value for attrib12|value for attrib12 - A"},
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputGroupField(
-		/* name */ "attrib122",
-		/* displayName */ "Attrib 122",
-		/* description */ "description for attrib122.",
-		/* groupId */ 2,
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib12=value for attrib12|value for attrib12 - B"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib122",
+		DisplayName: "Attrib 122",
+		Description: "description for attrib122.",
+		GroupID:     2,
+		InputType:   forms.String,
+		EnvVars:     []string{},
+		DependsOn:   []string{"attrib12=value for attrib12|value for attrib12 - B"},
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputField(
-		/* name */ "attrib131",
-		/* displayName */ "Attrib 131",
-		/* description */ "description for attrib131.",
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib12", "attrib13"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib131",
+		DisplayName: "Attrib 131",
+		Description: "description for attrib131.",
+		InputType:   forms.String,
+		EnvVars:     []string{},
+		DependsOn:   []string{"attrib12", "attrib13"},
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputGroupField(
-		/* name */ "attrib132",
-		/* displayName */ "Attrib 132",
-		/* description */ "description for attrib132.",
-		/* groupId */ 3,
-		/* inputType */ forms.String,
-		/* valueFromFile */ true,
-		/* envVars */ []string{"ATTRIB132"},
-		/* dependsOn */ []string{"attrib13"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:          "attrib132",
+		DisplayName:   "Attrib 132",
+		Description:   "description for attrib132.",
+		GroupID:       3,
+		InputType:     forms.String,
+		ValueFromFile: true,
+		EnvVars:       []string{"ATTRIB132"},
+		DependsOn:     []string{"attrib13"},
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputGroupFieldWithDefaultValue(
-		/* name */ "attrib133",
-		/* displayName */ "Attrib 133",
-		/* description */ "description for attrib133.",
-		/* groupId */ 3,
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* defaultValue */ "default value for attrib133",
-		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib13"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:         "attrib133",
+		DisplayName:  "Attrib 133",
+		Description:  "description for attrib133.",
+		GroupID:      3,
+		InputType:    forms.String,
+		DefaultValue: utils.PtrToStr("default value for attrib133"),
+		EnvVars:      []string{},
+		DependsOn:    []string{"attrib13"},
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputField(
-		/* name */ "attrib141",
-		/* displayName */ "Attrib 141",
-		/* description */ "description for attrib141.",
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib14=value for attrib14 - X"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib141",
+		DisplayName: "Attrib 141",
+		Description: "description for attrib141.",
+		InputType:   forms.String,
+		EnvVars:     []string{},
+		DependsOn:   []string{"attrib14=value for attrib14 - X"},
+	})
 	Expect(err).NotTo(HaveOccurred())
 
-	_, err = ig.NewInputField(
-		/* name */ "attrib1221",
-		/* displayName */ "Attrib 1221",
-		/* description */ "description for attrib1221.",
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib122"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib1221",
+		DisplayName: "Attrib 1221",
+		Description: "description for attrib1221.",
+		InputType:   forms.String,
+		EnvVars:     []string{},
+		DependsOn:   []string{"attrib122"},
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputField(
-		/* name */ "attrib1311",
-		/* displayName */ "Attrib 1311",
-		/* description */ "description for attrib1311.",
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib131"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib1311",
+		DisplayName: "Attrib 1311",
+		Description: "description for attrib1311.",
+		InputType:   forms.String,
+		EnvVars:     []string{},
+		DependsOn:   []string{"attrib131"},
+	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ig.NewInputField(
-		/* name */ "attrib1312",
-		/* displayName */ "Attrib 1312",
-		/* description */ "description for attrib1312.",
-		/* inputType */ forms.String,
-		/* valueFromFile */ false,
-		/* envVars */ []string{},
-		/* dependsOn */ []string{"attrib131"},
-	)
+	_, err = ig.NewInputField(forms.FieldAttributes{
+		Name:        "attrib1312",
+		DisplayName: "Attrib 1312",
+		Description: "description for attrib1312.",
+		InputType:   forms.String,
+		EnvVars:     []string{},
+		DependsOn:   []string{"attrib131"},
+	})
 	Expect(err).NotTo(HaveOccurred())
 
 	return ic

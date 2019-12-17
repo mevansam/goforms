@@ -55,6 +55,83 @@ type InputForm interface {
 	InputValues() map[string]string
 }
 
+// InputField initialization attributes
+type FieldAttributes struct {
+
+	// name of the field
+	Name,
+	// the name to display when requesting input
+	DisplayName,
+	// a long description which can also be the
+	// help text for the field
+	Description string
+
+	// defines a group id. all fields having
+	// the same group id will be added to
+	// a "Container" input group where only
+	// one input in the "Container" will
+	// be collected. an id of 0 flags the
+	// field as not belonging to Container
+	// group
+	GroupID int
+
+	// type of the input used for validation
+	InputType InputType
+
+	// if true then the input value should be
+	// a file which will be read as the value
+	// of the field
+	ValueFromFile bool
+
+	// a default value. nil if no default value
+	DefaultValue *string
+
+	// indicates if the field value should be masked
+	Sensitive bool
+
+	// any environment variables the value for
+	// this input can be sourced from
+	EnvVars []string
+
+	// inputs that this input depends. this
+	// helps define the input flow. this can
+	// be of the format:
+	//
+	// - "field_name":
+	//   this field will require input only
+	//   if the given dependent field is
+	//   entered
+	//
+	// - "field_name=value":
+	//   this field will be require input
+	//   only if the given dependent field has
+	//   the given value
+	//
+	DependsOn []string
+
+	// field value should match this regex
+	InclusionFilter,
+	// error message to return if inclusion
+	// filter does not match
+	InclusionFilterErrorMessage string
+
+	// field value should not match this regex
+	ExclusionFilter,
+	// error message to return if exclusion
+	// filter matches
+	ExclusionFilterErrorMessage string
+
+	// list of acceptable values for field
+	AcceptedValues []string
+	// error message to return none of the
+	// accepted values match the field value
+	AcceptedValuesErrorMessage string
+
+	// tags which used to create field subsets
+	// for input
+	Tags []string
+}
+
 // This structure is a container for a collection of
 // inputs which implements the InputForm abstraction
 type InputGroup struct {
@@ -102,168 +179,55 @@ func (g *InputGroup) NewInputContainer(
 	return container
 }
 
-// in: name          - name of the field
-// in: displayName   - the name to display when requesting
-//                     input
-// in: description   - a long description which can also be
-//                     the help text for the field
-// in: inputType     - type of the input used for validation
-// in: valueFromFile - if true then the input value should be
-//                     a file which will be read as the value
-//                     of the field
-// in: envVars       - any environment variables the value for
-//                     this input can be sourced from
-// in: dependsOn     - inputs that this input depends. this
-//                     helps define the input flow
+// in: attributes - The field attributes
 //
 // out: An initialized instance of an InputField structure
 func (g *InputGroup) NewInputField(
-	name, displayName, description string,
-	inputType InputType,
-	valueFromFile bool,
-	envVars []string,
-	dependsOn []string,
+	attributes FieldAttributes,
 ) (Input, error) {
 
-	return g.newInputField(
-		name,
-		displayName,
-		description,
-		0,
-		inputType,
-		valueFromFile,
-		nil,
-		envVars,
-		dependsOn,
+	var (
+		field *InputField
+		err   error
 	)
-}
+	if field, err = g.newInputField(
+		attributes.Name,
+		attributes.DisplayName,
+		attributes.Description,
+		attributes.GroupID,
+		attributes.InputType,
+		attributes.ValueFromFile,
+		attributes.DefaultValue,
+		attributes.Sensitive,
+		attributes.EnvVars,
+		attributes.DependsOn,
+	); err != nil {
+		return nil, err
+	}
+	if len(attributes.InclusionFilter) > 0 {
+		if err = field.SetInclusionFilter(
+			attributes.InclusionFilter,
+			attributes.InclusionFilterErrorMessage,
+		); err != nil {
+			return nil, err
+		}
+	}
+	if len(attributes.ExclusionFilter) > 0 {
+		if err = field.SetExclusionFilter(
+			attributes.ExclusionFilter,
+			attributes.ExclusionFilterErrorMessage,
+		); err != nil {
+			return nil, err
+		}
+	}
+	if attributes.AcceptedValues != nil {
+		field.SetAcceptedValues(
+			attributes.AcceptedValues,
+			attributes.AcceptedValuesErrorMessage,
+		)
+	}
 
-// in: name          - name of the field
-// in: displayName   - the name to display when requesting
-//                     input
-// in: description   - a long description which can also be
-//                     the help text for the field
-// in: inputType     - type of the input used for validation
-// in: valueFromFile - if true then the input value should be
-//                     a file which will be read as the value
-//                     of the field
-// in: defaultValue  - a default value
-// in: dependsOn     - inputs that this input depends. this
-//                     helps define the input flow
-// in: envVars       - any environment variables the value for
-//                     this input can be sourced from
-//
-// out: An initialized instance of an InputField structure
-func (g *InputGroup) NewInputFieldWithDefaultValue(
-	name, displayName, description string,
-	inputType InputType,
-	valueFromFile bool,
-	defaultValue string,
-	envVars []string,
-	dependsOn []string,
-) (Input, error) {
-
-	return g.newInputField(
-		name,
-		displayName,
-		description,
-		0,
-		inputType,
-		valueFromFile,
-		&defaultValue,
-		envVars,
-		dependsOn,
-	)
-}
-
-// in: name          - name of the field
-// in: displayName   - the name to display when requesting
-//                     input
-// in: description   - a long description which can also be
-//                     the help text for the field
-// in: groupId       - defines a group id. all fields having
-//                     the same group id will be added to
-//                     a "Container" input group where only
-//                     one input in the "Container" will
-//                     be collected. an id of 0 flags the
-//                     field as not belonging to Container
-//                     group
-// in: inputType     - type of the input used for validation
-// in: valueFromFile - if true then the input value should be
-//                     a file which will be read as the value
-//                     of the field
-// in: envVars       - any environment variables the value for
-//                     this input can be sourced from
-// in: dependsOn     - inputs that this input depends. this
-//                     helps define the input flow
-//
-// out: An initialized instance of an InputField structure
-func (g *InputGroup) NewInputGroupField(
-	name, displayName, description string,
-	groupId int,
-	inputType InputType,
-	valueFromFile bool,
-	envVars []string,
-	dependsOn []string,
-) (Input, error) {
-
-	return g.newInputField(
-		name,
-		displayName,
-		description,
-		groupId,
-		inputType,
-		valueFromFile,
-		nil,
-		envVars,
-		dependsOn,
-	)
-}
-
-// in: name          - name of the field
-// in: displayName   - the name to display when requesting
-//                     input
-// in: description   - a long description which can also be
-//                     the help text for the field
-// in: groupId       - defines a group id. all fields having
-//                     the same group id will be added to
-//                     a "Container" input group where only
-//                     one input in the "Container" will
-//                     be collected. an id of 0 flags the
-//                     field as not belonging to Container
-//                     group
-// in: inputType     - type of the input used for validation
-// in: valueFromFile - if true then the input value should be
-//                     a file which will be read as the value
-//                     of the field
-// in: defaultValue  - a default value
-// in: dependsOn     - inputs that this input depends. this
-//                     helps define the input flow
-// in: envVars       - any environment variables the value for
-//                     this input can be sourced from
-//
-// out: An initialized instance of an InputField structure
-func (g *InputGroup) NewInputGroupFieldWithDefaultValue(
-	name, displayName, description string,
-	groupId int,
-	inputType InputType,
-	valueFromFile bool,
-	defaultValue string,
-	envVars []string,
-	dependsOn []string,
-) (Input, error) {
-
-	return g.newInputField(
-		name,
-		displayName,
-		description,
-		groupId,
-		inputType,
-		valueFromFile,
-		&defaultValue,
-		envVars,
-		dependsOn,
-	)
+	return field, nil
 }
 
 // in: name          - name of the field
@@ -283,6 +247,7 @@ func (g *InputGroup) NewInputGroupFieldWithDefaultValue(
 //                     a file which will be read as the value
 //                     of the field
 // in: defaultValue  - a default value. nil if no default value
+// inL sensitive     - indicates if the field value should be masked
 // in: envVars       - any environment variables the value for
 //                     this input can be sourced from
 // in: dependsOn     - inputs that this input depends. this
@@ -295,9 +260,10 @@ func (g *InputGroup) newInputField(
 	inputType InputType,
 	valueFromFile bool,
 	defaultValue *string,
+	sensitive bool,
 	envVars []string,
 	dependsOn []string,
-) (Input, error) {
+) (*InputField, error) {
 
 	var (
 		err    error
@@ -331,6 +297,7 @@ func (g *InputGroup) newInputField(
 		valueFromFile: valueFromFile,
 		envVars:       envVars,
 		defaultValue:  defaultValue,
+		sensitive:     sensitive,
 
 		inputSet: false,
 		valueRef: nil,
@@ -343,7 +310,7 @@ func (g *InputGroup) newInputField(
 	}
 	g.fieldNameSet[name] = field
 
-	if len(dependsOn) > 0 {
+	if dependsOn != nil && len(dependsOn) > 0 {
 
 		// recursively add field to all
 		// inputs that it depends on

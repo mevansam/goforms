@@ -34,7 +34,7 @@ type InputField struct {
 
 	postFieldConditions []postCondition
 
-	acceptedValues             *[]string
+	acceptedValues             []string
 	acceptedValueSet           map[string]bool
 	acceptedValuesErrorMessage string
 
@@ -51,7 +51,7 @@ type postCondition struct {
 }
 
 // in: inclusionFilter - field value must match this regex
-// in: inclusionFilterErrorMessage - the message to display if inclusion filter does not match
+// in: inclusionFilterErrorMessage - error message to return if inclusion filter does not match
 func (f *InputField) SetInclusionFilter(
 	inclusionFilter, inclusionFilterErrorMessage string,
 ) error {
@@ -68,7 +68,7 @@ func (f *InputField) SetInclusionFilter(
 }
 
 // in: exclusionFilter - field value should not match this regex
-// in: exclusionFilterErrorMessage - the message to display if exclusion filter matches
+// in: exclusionFilterErrorMessage - error message to return if exclusion filter matches
 func (f *InputField) SetExclusionFilter(
 	exclusionFilter, exclusionFilterErrorMessage string,
 ) error {
@@ -85,16 +85,17 @@ func (f *InputField) SetExclusionFilter(
 }
 
 // in: acceptedValues - list of acceptable values for field
+// in: acceptedValuesErrorMessage - error message to return none of the accepted values match the field value
 func (f *InputField) SetAcceptedValues(
-	acceptedValues *[]string,
+	acceptedValues []string,
 	acceptedValuesErrorMessage string,
 ) {
 	f.acceptedValues = acceptedValues
 	f.acceptedValuesErrorMessage = acceptedValuesErrorMessage
 
-	if f.acceptedValues != nil {
+	if f.acceptedValues != nil && len(f.acceptedValues) > 0 {
 		f.acceptedValueSet = make(map[string]bool)
-		for _, v := range *acceptedValues {
+		for _, v := range acceptedValues {
 			f.acceptedValueSet[v] = true
 		}
 	} else {
@@ -103,13 +104,8 @@ func (f *InputField) SetAcceptedValues(
 }
 
 // out: list of acceptable values for field
-func (f *InputField) AcceptedValues() *[]string {
+func (f *InputField) AcceptedValues() []string {
 	return f.acceptedValues
-}
-
-// in: sensitive - indicates if the field value should be masked
-func (f *InputField) SetSensitive(sensitive bool) {
-	f.sensitive = sensitive
 }
 
 // out: whether to mask the field value
@@ -150,7 +146,11 @@ func (f *InputField) Enabled() bool {
 
 // out: environment variables associated with this field
 func (f *InputField) EnvVars() []string {
-	return f.envVars
+	if f.envVars == nil {
+		return []string{}
+	} else {
+		return f.envVars
+	}
 }
 
 // out: whether value is sourced from a file
@@ -161,7 +161,7 @@ func (f *InputField) EnvVars() []string {
 func (f *InputField) ValueFromFile() (bool, []string) {
 
 	paths := []string{}
-	if len(f.envVars) > 0 {
+	if f.envVars != nil && len(f.envVars) > 0 {
 		// extract value from environment and if value
 		// is a valid path then add it to returned list
 		for _, e := range f.envVars {
@@ -184,10 +184,9 @@ func (f *InputField) LongDescription() string {
 
 	buf.WriteString(f.description)
 
-	l := len(f.envVars)
-	if l > 0 {
+	if f.envVars != nil && len(f.envVars) > 0 {
 		buf.WriteString(" It will be sourced from the environment variable")
-		if l > 1 {
+		if len(f.envVars) > 1 {
 			buf.WriteString("s")
 		}
 		buf.WriteString(" ")
@@ -216,7 +215,7 @@ func (f *InputField) HasValue() bool {
 		return true
 
 	} else {
-		if len(f.envVars) > 0 {
+		if f.envVars != nil && len(f.envVars) > 0 {
 			for _, e := range f.envVars {
 				if _, exists := os.LookupEnv(e); exists {
 					return true
@@ -380,7 +379,7 @@ func (f *InputField) Value() *string {
 
 	value = f.valueDeref()
 	if value == nil && !f.valueFromFile {
-		if len(f.envVars) > 0 {
+		if f.envVars != nil && len(f.envVars) > 0 {
 			// extract value from environment
 			for _, e := range f.envVars {
 				if envVal, exists := os.LookupEnv(e); exists {

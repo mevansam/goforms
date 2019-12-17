@@ -120,7 +120,7 @@ var _ = Describe("Input Fields", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			acceptedValues := []string{"aa", "bb", "cc"}
-			field.SetAcceptedValues(&acceptedValues, "error")
+			field.SetAcceptedValues(acceptedValues, "error")
 
 			value = "dd"
 			err = field.SetValue(&value)

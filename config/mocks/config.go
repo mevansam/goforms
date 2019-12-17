@@ -39,28 +39,24 @@ func (f *FakeConfig) AddInputField(
 	)
 
 	if len(defaultValue) == 0 {
-		field, err = f.inputGroup.NewInputField(
-			name,
-			displayName,
-			description,
-			forms.String,
-			false,
-			envVars,
-			[]string{},
-		)
+		field, err = f.inputGroup.NewInputField(forms.FieldAttributes{
+			Name:        name,
+			DisplayName: displayName,
+			Description: description,
+			InputType:   forms.String,
+			EnvVars:     envVars,
+		})
 		Expect(err).NotTo(HaveOccurred())
 
 	} else {
-		field, err = f.inputGroup.NewInputFieldWithDefaultValue(
-			name,
-			displayName,
-			description,
-			forms.String,
-			false,
-			defaultValue,
-			envVars,
-			[]string{},
-		)
+		field, err = f.inputGroup.NewInputField(forms.FieldAttributes{
+			Name:         name,
+			DisplayName:  displayName,
+			Description:  description,
+			InputType:    forms.String,
+			DefaultValue: &defaultValue,
+			EnvVars:      envVars,
+		})
 		Expect(err).NotTo(HaveOccurred())
 	}
 
