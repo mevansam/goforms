@@ -45,6 +45,7 @@ func NewTextForm(
 func (tf *TextForm) GetInput(
 	showDefaults bool,
 	indentSpaces, width int,
+	tags ...string,
 ) error {
 
 	var (
@@ -93,7 +94,7 @@ func (tf *TextForm) GetInput(
 		prompt = ": "
 	}
 
-	cursor = forms.NewInputCursor(tf.inputGroup)
+	cursor = forms.NewInputCursor(tf.inputGroup, tags...)
 	cursor = cursor.NextInput()
 
 	for cursor != nil {
@@ -103,14 +104,7 @@ func (tf *TextForm) GetInput(
 
 		if input.Type() == forms.Container {
 
-			ii := input.Inputs()
-			inputs := make([]forms.Input, 0, len(ii))
-			for _, i := range ii {
-				if i.Enabled() {
-					inputs = append(inputs, i)
-				}
-			}
-
+			inputs := input.EnabledInputs(tags...)
 			if len(inputs) > 1 {
 				fmt.Println(input.Description())
 				fmt.Println(doubleDivider)
@@ -166,7 +160,7 @@ func (tf *TextForm) GetInput(
 				input = nil
 			}
 
-		} else if input.Enabled() {
+		} else if input.Enabled(tags...) {
 			promptInput(input)
 			prompt = ": "
 

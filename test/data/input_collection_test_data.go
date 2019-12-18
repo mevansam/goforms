@@ -64,6 +64,7 @@ func NewTestInputCollection() *forms.InputCollection {
 			"ATTRIB11_ENV2",
 			"ATTRIB11_ENV3",
 		},
+		Tags: []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -75,6 +76,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		EnvVars: []string{
 			"ATTRIB12_ENV1",
 		},
+		Tags: []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -87,6 +89,7 @@ func NewTestInputCollection() *forms.InputCollection {
 			"ATTRIB13_ENV1",
 			"ATTRIB13_ENV2",
 		},
+		Tags: []string{"tag2"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -96,6 +99,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		InputType:    forms.String,
 		DefaultValue: utils.PtrToStr("default value for attrib14"),
 		EnvVars:      []string{},
+		Tags:         []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -106,6 +110,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		InputType:   forms.String,
 		EnvVars:     []string{},
 		DependsOn:   []string{"attrib12=value for attrib12|value for attrib12 - A"},
+		Tags:        []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -116,6 +121,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		InputType:   forms.String,
 		EnvVars:     []string{},
 		DependsOn:   []string{"attrib12=value for attrib12|value for attrib12 - B"},
+		Tags:        []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -125,6 +131,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		InputType:   forms.String,
 		EnvVars:     []string{},
 		DependsOn:   []string{"attrib12", "attrib13"},
+		Tags:        []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -136,6 +143,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		ValueFromFile: true,
 		EnvVars:       []string{"ATTRIB132"},
 		DependsOn:     []string{"attrib13"},
+		Tags:          []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -147,6 +155,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		DefaultValue: utils.PtrToStr("default value for attrib133"),
 		EnvVars:      []string{},
 		DependsOn:    []string{"attrib13"},
+		Tags:         []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	_, err = ig.NewInputField(forms.FieldAttributes{
@@ -156,6 +165,7 @@ func NewTestInputCollection() *forms.InputCollection {
 		InputType:   forms.String,
 		EnvVars:     []string{},
 		DependsOn:   []string{"attrib14=value for attrib14 - X"},
+		Tags:        []string{"tag1"},
 	})
 	Expect(err).NotTo(HaveOccurred())
 

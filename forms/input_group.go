@@ -32,7 +32,9 @@ type Input interface {
 
 	Type() InputType
 	Inputs() []Input
-	Enabled() bool
+
+	Enabled(tags ...string) bool
+	EnabledInputs(tags ...string) []Input
 
 	getGroupId() int
 }
@@ -109,6 +111,10 @@ type FieldAttributes struct {
 	//
 	DependsOn []string
 
+	// tags used to create field subsets
+	// for input
+	Tags []string
+
 	// field value should match this regex
 	InclusionFilter,
 	// error message to return if inclusion
@@ -126,10 +132,6 @@ type FieldAttributes struct {
 	// error message to return none of the
 	// accepted values match the field value
 	AcceptedValuesErrorMessage string
-
-	// tags which used to create field subsets
-	// for input
-	Tags []string
 }
 
 // This structure is a container for a collection of
@@ -201,6 +203,7 @@ func (g *InputGroup) NewInputField(
 		attributes.Sensitive,
 		attributes.EnvVars,
 		attributes.DependsOn,
+		attributes.Tags,
 	); err != nil {
 		return nil, err
 	}
@@ -247,11 +250,14 @@ func (g *InputGroup) NewInputField(
 //                     a file which will be read as the value
 //                     of the field
 // in: defaultValue  - a default value. nil if no default value
-// inL sensitive     - indicates if the field value should be masked
+// inL sensitive     - indicates if the field value should be
+//                     masked
 // in: envVars       - any environment variables the value for
 //                     this input can be sourced from
 // in: dependsOn     - inputs that this input depends. this
 //                     helps define the input flow
+// in: tags   .      - tags used to create field subsets for
+//                     input
 //
 // out: An initialized instance of an InputField structure
 func (g *InputGroup) newInputField(
@@ -263,6 +269,7 @@ func (g *InputGroup) newInputField(
 	sensitive bool,
 	envVars []string,
 	dependsOn []string,
+	tags []string,
 ) (*InputField, error) {
 
 	var (
@@ -302,6 +309,7 @@ func (g *InputGroup) newInputField(
 		inputSet: false,
 		valueRef: nil,
 
+		tags:                []string{},
 		postFieldConditions: []postCondition{},
 
 		acceptedValues:  nil,
@@ -309,6 +317,10 @@ func (g *InputGroup) newInputField(
 		exclusionFilter: nil,
 	}
 	g.fieldNameSet[name] = field
+
+	if tags != nil {
+		field.tags = tags
+	}
 
 	if dependsOn != nil && len(dependsOn) > 0 {
 
@@ -467,8 +479,21 @@ func (g *InputGroup) Inputs() []Input {
 }
 
 // out: whether this group is enabled
-func (f *InputGroup) Enabled() bool {
+func (g *InputGroup) Enabled(tags ...string) bool {
 	return true
+}
+
+// out: list of inputs that match any one of the given
+//      tags and satisfies the input's post-condition
+func (g *InputGroup) EnabledInputs(tags ...string) []Input {
+
+	inputs := make([]Input, 0, len(g.inputs))
+	for _, i := range g.inputs {
+		if i.Enabled(tags...) {
+			inputs = append(inputs, i)
+		}
+	}
+	return inputs
 }
 
 // out: return the group id

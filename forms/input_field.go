@@ -33,6 +33,7 @@ type InputField struct {
 	sensitive bool
 
 	postFieldConditions []postCondition
+	tags                []string
 
 	acceptedValues             []string
 	acceptedValueSet           map[string]bool
@@ -119,14 +120,27 @@ func (f *InputField) Optional() bool {
 }
 
 // out: whether this field is enabled
-func (f *InputField) Enabled() bool {
+func (f *InputField) Enabled(tags ...string) bool {
 
 	var (
-		value *string
+		enabled bool
+		value   *string
 	)
 
-	enabled := true
-	if len(f.postFieldConditions) > 0 {
+	if len(tags) > 0 {
+		enabled = false
+		for _, fieldTag := range f.tags {
+			for _, tag := range tags {
+				if fieldTag == tag {
+					enabled = true
+					break
+				}
+			}
+		}
+	} else {
+		enabled = true
+	}
+	if enabled && len(f.postFieldConditions) > 0 {
 		for _, c := range f.postFieldConditions {
 			if value = c.field.Value(); value != nil {
 				hasValue := false

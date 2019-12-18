@@ -214,15 +214,21 @@ var _ = Describe("Input Collection", func() {
 				"attrib14":   "default value for attrib14",
 			}
 
-			cursor, err = forms.NewInputCursorFromCollection("input-form", ic)
+			cursor, err = forms.NewInputCursorFromCollection("input-form", ic, "tag1")
 			Expect(err).NotTo(HaveOccurred())
 
 			cursor = advanceCursorPositionAndValidate(cursor, "group1")
+
+			// not an input with tag1
+			cursor, err = cursor.SetInput("attrib13", "value for attrib13")
+			Expect(err).To(HaveOccurred())
+
 			cursor, err = cursor.SetInput("attrib12", "value for attrib12 - B")
 			Expect(err).ToNot(HaveOccurred())
 
-			// field attrib121 expects value of attrib12 = 'value for attrib12 - A'
 			cursor = advanceCursorPositionAndValidate(cursor, "group2")
+
+			// field attrib121 expects value of attrib12 = 'value for attrib12 - A'
 			cursor, err = cursor.SetInput("attrib121", "value for attrib121")
 			Expect(err).To(HaveOccurred())
 

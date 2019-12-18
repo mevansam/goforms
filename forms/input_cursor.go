@@ -6,11 +6,14 @@ type InputCursor struct {
 	parents []*InputCursor
 	group   Input
 	index   int
+
+	tags []string
 }
 
 func NewInputCursorFromCollection(
 	groupName string,
 	collection *InputCollection,
+	tags ...string,
 ) (*InputCursor, error) {
 
 	input := collection.Group(groupName)
@@ -20,17 +23,20 @@ func NewInputCursorFromCollection(
 			groupName)
 	}
 
-	return NewInputCursor(input), nil
+	return NewInputCursor(input, tags...), nil
 }
 
 func NewInputCursor(
 	input *InputGroup,
+	tags ...string,
 ) *InputCursor {
 
 	return &InputCursor{
 		parents: []*InputCursor{},
 		group:   input,
 		index:   -1,
+
+		tags: tags,
 	}
 }
 
@@ -135,7 +141,7 @@ func (c *InputCursor) setInput(name string, value *string) (*InputCursor, error)
 	}
 
 	inputField = currInput.(*InputField)
-	if !inputField.Enabled() {
+	if !inputField.Enabled(c.tags...) {
 		return cursor, fmt.Errorf(
 			"input field '%s' is disabled", name)
 	}
