@@ -263,7 +263,6 @@ func (tf *TextForm) GetInput(
 		cursor = cursor.NextInput()
 	}
 
-	fmt.Println(doubleDivider)
 	return nil
 }
 
