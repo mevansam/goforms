@@ -20,6 +20,44 @@ type TextForm struct {
 	inputGroup *forms.InputGroup
 }
 
+func GetFormInput(
+	inputForm forms.InputForm,
+	title, heading string,
+	showDefaults bool,
+	indentSpaces, width int,
+	tags ...string,
+) error {
+
+	var (
+		err      error
+		textForm *TextForm
+	)
+
+	fmt.Println()
+	if textForm, err = NewTextForm(
+		title, heading,
+		inputForm); err != nil {
+		// if this happens there is an internal
+		// error and it is most likely a bug
+		panic(err)
+	}
+	if err = textForm.GetInput(
+		showDefaults,
+		indentSpaces,
+		width,
+		tags...,
+	); err != nil {
+
+		if err == liner.ErrPromptAborted {
+			fmt.Println("\nConfiguration input aborted.")
+			os.Exit(1)
+		} else {
+			return err
+		}
+	}
+	return nil
+}
+
 func NewTextForm(
 	title, heading string,
 	input forms.Input,
