@@ -416,7 +416,7 @@ func (tf *TextForm) printFormHeader(
 	fmt.Print("\n\n")
 
 	l := len(padding)
-	s, _ := utils.SplitString(tf.heading, l, width-l, true)
+	s, _ := utils.FormatMultilineString(tf.heading, l, width-l, true)
 	fmt.Print(s)
 	fmt.Println()
 }
@@ -453,7 +453,7 @@ func (tf *TextForm) getInputLongDescription(
 	out.WriteString(" - ")
 
 	l = len(out.String())
-	description, _ := utils.SplitString(input.LongDescription(), l, width-l, false)
+	description, _ := utils.FormatMultilineString(input.LongDescription(), l, width-l, false)
 	out.WriteString(description)
 
 	if showDefaults {
@@ -463,10 +463,10 @@ func (tf *TextForm) getInputLongDescription(
 				out.WriteString(padding)
 
 				if field.Sensitive() {
-					defaultValue, _ = utils.SplitString("(Default value = '****')", l, width-l, true)
+					defaultValue, _ = utils.FormatMultilineString("(Default value = '****')", l, width-l, true)
 					out.WriteString(defaultValue)
 				} else {
-					defaultValue, _ = utils.SplitString(fmt.Sprintf("(Default value = '%s')", *value), l, width-l, true)
+					defaultValue, _ = utils.FormatMultilineString(fmt.Sprintf("(Default value = '%s')", *value), l, width-l, true)
 					out.WriteString(defaultValue)
 
 				}
