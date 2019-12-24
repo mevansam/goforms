@@ -318,6 +318,7 @@ func (tf *TextForm) GetInput(
 func (tf *TextForm) ShowInputReference(
 	fieldShowOption FieldShowOption,
 	startIndent, indentSpaces, width int,
+	tags ...string,
 ) {
 
 	var (
@@ -330,7 +331,7 @@ func (tf *TextForm) ShowInputReference(
 	padding = strings.Repeat(" ", startIndent)
 
 	fieldLengths = make(map[string]*int)
-	tf.calcNameLengths(tf.inputGroup, fieldLengths, nil, true)
+	tf.calcNameLengths(tf.inputGroup, fieldLengths, nil, true, tags...)
 
 	printInput = func(level int, input forms.Input) {
 
@@ -341,6 +342,11 @@ func (tf *TextForm) ShowInputReference(
 			ii     forms.Input
 			i, l   int
 		)
+
+		// skip if input is disabled
+		if !input.Enabled(tags...) {
+			return
+		}
 
 		fmt.Println()
 		if input.Type() == forms.Container {
@@ -514,6 +520,7 @@ func (tf *TextForm) calcNameLengths(
 	fieldLengths map[string]*int,
 	length *int,
 	isRoot bool,
+	tags ...string,
 ) {
 
 	if length == nil {
@@ -521,7 +528,7 @@ func (tf *TextForm) calcNameLengths(
 		length = &ll
 	}
 
-	for _, i := range input.Inputs() {
+	for _, i := range input.EnabledInputs(tags...) {
 
 		if i.Type() != forms.Container {
 
