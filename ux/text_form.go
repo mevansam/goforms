@@ -10,6 +10,7 @@ import (
 
 	"github.com/mevansam/goforms/forms"
 	"github.com/mevansam/goutils/logger"
+	"github.com/mevansam/goutils/term"
 	"github.com/mevansam/goutils/utils"
 )
 
@@ -404,21 +405,23 @@ func (tf *TextForm) printFormHeader(
 	width int,
 ) {
 	fmt.Print(padding)
-	fmt.Print(tf.title)
+	fmt.Print(term.BOLD + tf.title)
 	fmt.Println()
 
 	fmt.Print(padding)
 	utils.RepeatString("=", len(tf.title), os.Stdout)
-	fmt.Print("\n\n")
+	fmt.Print(term.NC + "\n\n")
 
 	fmt.Print(padding)
 	fmt.Print(tf.inputGroup.Description())
 	fmt.Print("\n\n")
 
-	l := len(padding)
-	s, _ := utils.FormatMultilineString(tf.heading, l, width-l, true)
-	fmt.Print(s)
-	fmt.Println()
+	if len(tf.heading) > 0 {
+		l := len(padding)
+		s, _ := utils.FormatMultilineString(tf.heading, l, width-l, true)
+		fmt.Print(term.ITALIC + s + term.NC)
+		fmt.Println()
+	}
 }
 
 func (tf *TextForm) getInputLongDescription(
