@@ -14,6 +14,15 @@ import (
 	"github.com/mevansam/goutils/utils"
 )
 
+// Field show options
+type FieldShowOption int
+
+const (
+	DescOnly FieldShowOption = iota
+	DescAndValues
+	DescAndDefaults
+)
+
 type TextForm struct {
 	title,
 	heading string
@@ -24,7 +33,6 @@ type TextForm struct {
 func GetFormInput(
 	inputForm forms.InputForm,
 	title, heading string,
-	showDefaults bool,
 	indentSpaces, width int,
 	tags ...string,
 ) error {
@@ -43,7 +51,6 @@ func GetFormInput(
 		panic(err)
 	}
 	if err = textForm.GetInput(
-		showDefaults,
 		indentSpaces,
 		width,
 		tags...,
@@ -82,7 +89,6 @@ func NewTextForm(
 }
 
 func (tf *TextForm) GetInput(
-	showDefaults bool,
 	indentSpaces, width int,
 	tags ...string,
 ) error {
@@ -126,8 +132,10 @@ func (tf *TextForm) GetInput(
 	promptInput := func(input forms.Input) {
 
 		fmt.Println(tf.getInputLongDescription(
-			input, showDefaults, len(input.DisplayName()),
-			"", "", 0, width,
+			input,
+			DescOnly,
+			"", "",
+			0, width, len(input.DisplayName()),
 		))
 		fmt.Println(singleDivider)
 		prompt = ": "
@@ -166,8 +174,10 @@ func (tf *TextForm) GetInput(
 
 					options[i] = strconv.Itoa(i + 1)
 					fmt.Println(tf.getInputLongDescription(
-						ii, showDefaults, l, "",
-						fmt.Sprintf("%s. ", options[i]), 0, width,
+						ii,
+						DescOnly,
+						"", fmt.Sprintf("%s. ", options[i]),
+						0, width, l,
 					))
 					fmt.Println(singleDivider)
 				}
@@ -306,7 +316,7 @@ func (tf *TextForm) GetInput(
 }
 
 func (tf *TextForm) ShowInputReference(
-	showDefaults bool,
+	fieldShowOption FieldShowOption,
 	startIndent, indentSpaces, width int,
 ) {
 
@@ -352,10 +362,9 @@ func (tf *TextForm) ShowInputReference(
 
 			fmt.Printf(tf.getInputLongDescription(
 				input,
-				showDefaults,
-				*fieldLengths[input.DisplayName()],
+				fieldShowOption,
 				padding, "* ",
-				level*indentSpaces, width,
+				level*indentSpaces, width, *fieldLengths[input.DisplayName()],
 			))
 		}
 
@@ -404,8 +413,8 @@ func (tf *TextForm) printFormHeader(
 	padding string,
 	width int,
 ) {
-	fmt.Print(padding)
-	fmt.Print(term.BOLD + tf.title)
+	fmt.Print(term.BOLD + padding)
+	fmt.Print(tf.title)
 	fmt.Println()
 
 	fmt.Print(padding)
@@ -426,10 +435,9 @@ func (tf *TextForm) printFormHeader(
 
 func (tf *TextForm) getInputLongDescription(
 	input forms.Input,
-	showDefaults bool,
-	nameLen int,
+	fieldShowOption FieldShowOption,
 	padding, bullet string,
-	indent, width int,
+	indent, width, nameLen int,
 ) string {
 
 	var (
@@ -440,9 +448,9 @@ func (tf *TextForm) getInputLongDescription(
 		name string
 		l    int
 
-		field        *forms.InputField
-		value        *string
-		defaultValue string
+		field  *forms.InputField
+		value  *string
+		output string
 	)
 
 	out.WriteString(padding)
@@ -453,25 +461,46 @@ func (tf *TextForm) getInputLongDescription(
 	out.WriteString(name)
 
 	utils.RepeatString(" ", nameLen-len(name), &out)
-	out.WriteString(" - ")
+	if fieldShowOption == DescAndValues && input.Type() != forms.Container {
+		out.WriteString(" = ")
+		l = len(out.String())
 
-	l = len(out.String())
-	description, _ := utils.FormatMultilineString(input.LongDescription(), l, width-l, false)
-	out.WriteString(description)
-
-	if showDefaults {
 		if field, ok = input.(*forms.InputField); ok {
 			if value = field.Value(); value != nil {
-				out.WriteString("\n")
-				out.WriteString(padding)
-
 				if field.Sensitive() {
-					defaultValue, _ = utils.FormatMultilineString("(Default value = '****')", l, width-l, true)
-					out.WriteString(defaultValue)
+					out.WriteString("****")
 				} else {
-					defaultValue, _ = utils.FormatMultilineString(fmt.Sprintf("(Default value = '%s')", *value), l, width-l, true)
-					out.WriteString(defaultValue)
+					output, _ = utils.FormatMultilineString(*value, l, width-l, false)
+					out.WriteString(output)
+				}
+			} else {
+				out.WriteString("[no data]")
+			}
+		}
 
+		out.WriteString("\n")
+		description, _ := utils.FormatMultilineString(
+			term.DIM+input.LongDescription()+term.NC, l, width-l, true)
+		out.WriteString(description)
+	} else {
+		out.WriteString(" - ")
+
+		l = len(out.String())
+		description, _ := utils.FormatMultilineString(input.LongDescription(), l, width-l, false)
+		out.WriteString(description)
+
+		if fieldShowOption == DescAndDefaults && input.Type() != forms.Container {
+			if field, ok = input.(*forms.InputField); ok {
+				if value = field.DefaultValue(); value != nil {
+					out.WriteString("\n")
+
+					if field.Sensitive() {
+						output, _ = utils.FormatMultilineString("(Default value = '****')", l, width-l, true)
+						out.WriteString(output)
+					} else {
+						output, _ = utils.FormatMultilineString(fmt.Sprintf("(Default value = '%s')", *value), l, width-l, true)
+						out.WriteString(output)
+					}
 				}
 			}
 		}

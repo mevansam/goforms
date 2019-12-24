@@ -109,6 +109,11 @@ func (f *InputField) AcceptedValues() []string {
 	return f.acceptedValues
 }
 
+// out: the default value of the field
+func (f *InputField) DefaultValue() *string {
+	return f.defaultValue
+}
+
 // out: whether to mask the field value
 func (f *InputField) Sensitive() bool {
 	return f.sensitive

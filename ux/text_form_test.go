@@ -14,6 +14,7 @@ import (
 	"github.com/mevansam/goforms/forms"
 	"github.com/mevansam/goforms/ux"
 	"github.com/mevansam/goutils/logger"
+	"github.com/mevansam/goutils/term"
 	"github.com/mevansam/goutils/utils"
 
 	. "github.com/onsi/ginkgo"
@@ -30,6 +31,9 @@ var _ = Describe("Text Formatting tests", func() {
 		origStdin, stdInWriter,
 		origStdout, stdOutReader,
 		origStderr *os.File
+
+		inputGroup  *forms.InputGroup
+		inputValues map[string]*string
 	)
 
 	BeforeEach(func() {
@@ -47,6 +51,18 @@ var _ = Describe("Text Formatting tests", func() {
 		origStdin = os.Stdin
 		os.Stdin, stdInWriter, err = os.Pipe()
 		Expect(err).ToNot(HaveOccurred())
+
+		// Bind fields to map of values so
+		// that form values can be saved
+		inputGroup = test_data.NewTestInputCollection().Group("input-form")
+
+		inputValues = make(map[string]*string)
+		for _, f := range inputGroup.InputFields() {
+			s := new(string)
+			inputValues[f.Name()] = s
+			err = f.SetValueRef(s)
+			Expect(err).ToNot(HaveOccurred())
+		}
 	})
 
 	AfterEach(func() {
@@ -59,7 +75,7 @@ var _ = Describe("Text Formatting tests", func() {
 
 	Context("Output", func() {
 
-		It("outputs a detailed input data form reference", func() {
+		var testFormOutput = func(fieldShowOption ux.FieldShowOption, expected string) {
 
 			// channel to signal when getting form input is done
 			out := make(chan string)
@@ -70,14 +86,13 @@ var _ = Describe("Text Formatting tests", func() {
 					output bytes.Buffer
 				)
 
-				ic := test_data.NewTestInputCollection()
 				tf, err := ux.NewTextForm(
 					"Input Data Form for 'input-form'",
 					"CONFIGURATION DATA INPUT",
-					ic.Group("input-form"),
+					inputGroup,
 				)
 				Expect(err).NotTo(HaveOccurred())
-				tf.ShowInputReference(false, 2, 2, 80)
+				tf.ShowInputReference(fieldShowOption, 2, 2, 80)
 
 				// close piped output
 				os.Stdout.Close()
@@ -91,15 +106,28 @@ var _ = Describe("Text Formatting tests", func() {
 
 			output := <-out
 			logger.DebugMessage("\n%s\n", output)
-			Expect(output).To(Equal(testFormReferenceOutput))
+			Expect(output).To(Equal(expected))
+		}
+
+		It("outputs a detailed input data form reference", func() {
+			testFormOutput(ux.DescAndDefaults, testFormReferenceOutput)
+		})
+
+		It("outputs a detailed input data form with field values", func() {
+
+			inputGroup.SetFieldValue("attrib12", "value for attrib12")
+			inputGroup.SetFieldValue("attrib122", "value for attrib122")
+			inputGroup.SetFieldValue("attrib1221", "value for attrib1221")
+			inputGroup.SetFieldValue("attrib131", "value for attrib131")
+			inputGroup.SetFieldValue("attrib1311", "value for attrib1311")
+			inputGroup.SetFieldValue("attrib1312", "value for attrib1311")
+			inputGroup.SetFieldValue("attrib14", "value for attrib14")
+
+			testFormOutput(ux.DescAndValues, testFormOutputWithValues)
 		})
 	})
 
 	Context("Input", func() {
-
-		var (
-			inputGroup *forms.InputGroup
-		)
 
 		var testFormInput = func(testFormInputPrompts string, expectedValues map[string]string) {
 
@@ -116,7 +144,7 @@ var _ = Describe("Text Formatting tests", func() {
 					inputGroup,
 				)
 				if err == nil {
-					err = tf.GetInput(false, 2, 80)
+					err = tf.GetInput(2, 80)
 				}
 				Expect(err).NotTo(HaveOccurred())
 			}()
@@ -177,21 +205,6 @@ var _ = Describe("Text Formatting tests", func() {
 			Expect(utils.WaitTimeout(&wg, time.Second)).To(BeTrue())
 		}
 
-		BeforeEach(func() {
-
-			inputGroup = test_data.NewTestInputCollection().Group("input-form")
-
-			// Bind fields to map of values so
-			// that form values can be saved
-			inputValues := make(map[string]*string)
-			for _, f := range inputGroup.InputFields() {
-				s := new(string)
-				inputValues[f.Name()] = s
-				err = f.SetValueRef(s)
-				Expect(err).ToNot(HaveOccurred())
-			}
-		})
-
 		It("gathers input for the form from stdin #1", func() {
 
 			expectedValues := map[string]string{
@@ -207,7 +220,7 @@ var _ = Describe("Text Formatting tests", func() {
 			testFormInput(testFormInputPrompts1, expectedValues)
 		})
 
-		It("gathers input for the form from stdin #2", func() {
+		It("gathers input for the form from stdin #2 - with conditional field", func() {
 
 			expectedValues := map[string]string{
 				"attrib12":   "value for attrib12 - A",
@@ -224,12 +237,12 @@ var _ = Describe("Text Formatting tests", func() {
 	})
 })
 
-const testFormReferenceOutput = `  Input Data Form for 'input-form'
-  ================================
+const testFormReferenceOutput = term.BOLD + `  Input Data Form for 'input-form'
+  ================================` + term.NC + `
 
   test group description
 
-  CONFIGURATION DATA INPUT
+` + term.ITALIC + `  CONFIGURATION DATA INPUT` + term.NC + `
 
   * Provide one of the following for:
 
@@ -278,16 +291,92 @@ const testFormReferenceOutput = `  Input Data Form for 'input-form'
       OR
 
       * Attrib 133 - description for attrib133.
+                     (Default value = 'default value for attrib133')
 
   * Attrib 14  - description for attrib14.
+                 (Default value = 'default value for attrib14')
   * Attrib 141 - description for attrib141.`
 
-const testFormInputPrompts1 = `Input Data Form for 'input-form'
-================================
+const testFormOutputWithValues = term.BOLD + `  Input Data Form for 'input-form'
+  ================================` + term.NC + `
+
+  test group description
+
+` + term.ITALIC + `  CONFIGURATION DATA INPUT` + term.NC + `
+
+  * Provide one of the following for:
+
+    description for group 1
+
+    * Attrib 11 = [no data]
+                  ` + term.DIM + `description for attrib11. It will be sourced from the
+                  environment variables ATTRIB11_ENV1, ATTRIB11_ENV2,
+                  ATTRIB11_ENV3 if not provided.` + term.NC + `
+
+    OR
+
+    * Attrib 12 = value for attrib12
+                  ` + term.DIM + `description for attrib12. It will be sourced from the
+                  environment variable ATTRIB12_ENV1 if not provided.` + term.NC + `
+
+    * Provide one of the following for:
+
+      description for group 2
+
+      * Attrib 121 = [no data]
+                     ` + term.DIM + `description for attrib121.` + term.NC + `
+
+      OR
+
+      * Attrib 122  = value for attrib122
+                      ` + term.DIM + `description for attrib122.` + term.NC + `
+      * Attrib 1221 = value for attrib1221
+                      ` + term.DIM + `description for attrib1221.` + term.NC + `
+
+    * Attrib 131  = value for attrib131
+                    ` + term.DIM + `description for attrib131.` + term.NC + `
+    * Attrib 1311 = value for attrib1311
+                    ` + term.DIM + `description for attrib1311.` + term.NC + `
+    * Attrib 1312 = value for attrib1311
+                    ` + term.DIM + `description for attrib1312.` + term.NC + `
+
+    OR
+
+    * Attrib 13   = [no data]
+                    ` + term.DIM + `description for attrib13. It will be sourced from the
+                    environment variables ATTRIB13_ENV1, ATTRIB13_ENV2 if not
+                    provided.` + term.NC + `
+    * Attrib 131  = value for attrib131
+                    ` + term.DIM + `description for attrib131.` + term.NC + `
+    * Attrib 1311 = value for attrib1311
+                    ` + term.DIM + `description for attrib1311.` + term.NC + `
+    * Attrib 1312 = value for attrib1311
+                    ` + term.DIM + `description for attrib1312.` + term.NC + `
+
+    * Provide one of the following for:
+
+      description for group 3
+
+      * Attrib 132 = [no data]
+                     ` + term.DIM + `description for attrib132. It will be sourced from the
+                     environment variable ATTRIB132 if not provided.` + term.NC + `
+
+      OR
+
+      * Attrib 133 = default value for attrib133
+                     ` + term.DIM + `description for attrib133.` + term.NC + `
+
+  * Attrib 14  = value for attrib14
+                 ` + term.DIM + `description for attrib14.` + term.NC + `
+  * Attrib 141 = [no data]
+                 ` + term.DIM + `description for attrib141.` + term.NC
+
+const testFormInputPrompts1 = term.BOLD + `Input Data Form for 'input-form'
+================================` + term.NC + `
 
 test group description
 
-CONFIGURATION DATA INPUT
+` + term.ITALIC + `CONFIGURATION DATA INPUT` + term.NC + `
 ================================================================================
 
 description for group 1
@@ -337,12 +426,12 @@ Attrib 14 - description for attrib14.
 : <<value for attrib14
 `
 
-const testFormInputPrompts2 = `Input Data Form for 'input-form'
-================================
+const testFormInputPrompts2 = term.BOLD + `Input Data Form for 'input-form'
+================================` + term.NC + `
 
 test group description
 
-CONFIGURATION DATA INPUT
+` + term.ITALIC + `CONFIGURATION DATA INPUT` + term.NC + `
 ================================================================================
 
 description for group 1
