@@ -293,9 +293,8 @@ const testFormReferenceOutput = term.BOLD + `  Input Data Form for 'input-form'
       * Attrib 133 - description for attrib133.
                      (Default value = 'default value for attrib133')
 
-  * Attrib 14  - description for attrib14.
-                 (Default value = 'default value for attrib14')
-  * Attrib 141 - description for attrib141.`
+  * Attrib 14 - description for attrib14.
+                (Default value = 'default value for attrib14')`
 
 const testFormOutputWithValues = term.BOLD + `  Input Data Form for 'input-form'
   ================================` + term.NC + `
@@ -366,10 +365,8 @@ const testFormOutputWithValues = term.BOLD + `  Input Data Form for 'input-form'
       * Attrib 133 = default value for attrib133
                      ` + term.DIM + `description for attrib133.` + term.NC + `
 
-  * Attrib 14  = value for attrib14
-                 ` + term.DIM + `description for attrib14.` + term.NC + `
-  * Attrib 141 = [no data]
-                 ` + term.DIM + `description for attrib141.` + term.NC
+  * Attrib 14 = value for attrib14
+                ` + term.DIM + `description for attrib14.` + term.NC
 
 const testFormInputPrompts1 = term.BOLD + `Input Data Form for 'input-form'
 ================================` + term.NC + `
