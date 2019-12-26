@@ -57,7 +57,11 @@ func GetFormInput(
 	); err != nil {
 
 		if err == liner.ErrPromptAborted {
-			fmt.Println("\nConfiguration input aborted.")
+			fmt.Println(
+				term.RED +
+					"\nConfiguration input aborted.\n" +
+					term.NC,
+			)
 			os.Exit(1)
 		} else {
 			return err
