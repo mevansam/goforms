@@ -306,7 +306,7 @@ func (tf *TextForm) GetInput(
 					return err
 				}
 			}
-			if valueFromFile {
+			if valueFromFile && !inputField.Sensitive() {
 				fmt.Printf("Value from file: \n%s\n", *inputField.Value())
 			}
 
