@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/peterh/liner"
 
 	"github.com/mevansam/goforms/forms"
@@ -58,9 +59,7 @@ func GetFormInput(
 
 		if err == liner.ErrPromptAborted {
 			fmt.Println(
-				term.RED +
-					"\nConfiguration input aborted.\n" +
-					term.NC,
+				color.Red.Render("\nConfiguration input aborted.\n"),
 			)
 			os.Exit(1)
 		} else {
@@ -423,13 +422,18 @@ func (tf *TextForm) printFormHeader(
 	padding string,
 	width int,
 ) {
-	fmt.Print(term.BOLD + padding)
-	fmt.Print(tf.title)
-	fmt.Println()
+	var (
+		text strings.Builder
+	)
 
-	fmt.Print(padding)
-	utils.RepeatString("=", len(tf.title), os.Stdout)
-	fmt.Print(term.NC + "\n\n")
+	text.WriteString(padding)
+	text.WriteString(tf.title)
+	text.Write(term.LineFeedB)
+	text.WriteString(padding)
+	utils.RepeatString("=", len(tf.title), &text)
+
+	fmt.Print(color.OpBold.Render(text.String()))
+	fmt.Print("\n\n")
 
 	fmt.Print(padding)
 	fmt.Print(tf.inputGroup.Description())
@@ -438,7 +442,7 @@ func (tf *TextForm) printFormHeader(
 	if len(tf.heading) > 0 {
 		l := len(padding)
 		s, _ := utils.FormatMultilineString(tf.heading, l, width-l, true)
-		fmt.Print(term.ITALIC + s + term.NC)
+		fmt.Print(color.OpItalic.Render(s))
 		fmt.Println()
 	}
 }
@@ -490,7 +494,8 @@ func (tf *TextForm) getInputLongDescription(
 
 		out.WriteString("\n")
 		description, _ := utils.FormatMultilineString(
-			term.DIM+input.LongDescription()+term.NC, l, width-l, true)
+			color.OpFuzzy.Render(input.LongDescription()),
+			l, width-l, true)
 		out.WriteString(description)
 	} else {
 		out.WriteString(" - ")
