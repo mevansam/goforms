@@ -33,8 +33,8 @@ type Input interface {
 	Type() InputType
 	Inputs() []Input
 
-	Enabled(tags ...string) bool
-	EnabledInputs(tags ...string) []Input
+	Enabled(evaluate bool, tags ...string) bool
+	EnabledInputs(evaluate bool, tags ...string) []Input
 
 	getGroupId() int
 }
@@ -478,18 +478,22 @@ func (g *InputGroup) Inputs() []Input {
 	return g.inputs
 }
 
+// in: evaluate - whether field's dependencies should be evaluated
+// in: tags - fields associated with these tags should be enabled
 // out: whether this group is enabled
-func (g *InputGroup) Enabled(tags ...string) bool {
+func (g *InputGroup) Enabled(evaluate bool, tags ...string) bool {
 	return true
 }
 
+// in: evaluate - whether field's dependencies should be evaluated
+// in: tags - fields associated with these tags should be enabled
 // out: list of inputs that match any one of the given
 //      tags and satisfies the input's post-condition
-func (g *InputGroup) EnabledInputs(tags ...string) []Input {
+func (g *InputGroup) EnabledInputs(evaluate bool, tags ...string) []Input {
 
 	inputs := make([]Input, 0, len(g.inputs))
 	for _, i := range g.inputs {
-		if i.Enabled(tags...) {
+		if i.Enabled(evaluate, tags...) {
 			inputs = append(inputs, i)
 		}
 	}

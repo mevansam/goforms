@@ -154,7 +154,7 @@ func (tf *TextForm) GetInput(
 
 		if input.Type() == forms.Container {
 
-			inputs := input.EnabledInputs(tags...)
+			inputs := input.EnabledInputs(true, tags...)
 			if len(inputs) > 1 {
 				fmt.Println(input.Description())
 				fmt.Println(doubleDivider)
@@ -212,7 +212,7 @@ func (tf *TextForm) GetInput(
 				input = nil
 			}
 
-		} else if input.Enabled(tags...) {
+		} else if input.Enabled(true, tags...) {
 			promptInput(input)
 			prompt = ": "
 
@@ -328,10 +328,12 @@ func (tf *TextForm) ShowInputReference(
 		padding    string
 		printInput func(level int, input forms.Input)
 
-		fieldLengths map[string]*int
+		evalFieldDeps bool
+		fieldLengths  map[string]*int
 	)
 
 	padding = strings.Repeat(" ", startIndent)
+	evalFieldDeps = fieldShowOption == DescAndValues
 
 	fieldLengths = make(map[string]*int)
 	tf.calcNameLengths(tf.inputGroup, fieldLengths, nil, true, tags...)
@@ -347,7 +349,7 @@ func (tf *TextForm) ShowInputReference(
 		)
 
 		// skip if input is disabled
-		if !input.Enabled(tags...) {
+		if !input.Enabled(evalFieldDeps, tags...) {
 			return
 		}
 
@@ -405,7 +407,7 @@ func (tf *TextForm) ShowInputReference(
 
 			// end group with new line. handle case where if last input
 			// also had a container at the end of its inputs two newlines
-			// will be outputwhen only on newline should have been output
+			// will be output when only on newline should have been output
 			if l == 0 || inputs[l-1].Type() != forms.Container {
 				fmt.Print("\n")
 			}
@@ -537,7 +539,7 @@ func (tf *TextForm) calcNameLengths(
 		length = &ll
 	}
 
-	for _, i := range input.EnabledInputs(tags...) {
+	for _, i := range input.EnabledInputs(false, tags...) {
 
 		if i.Type() != forms.Container {
 

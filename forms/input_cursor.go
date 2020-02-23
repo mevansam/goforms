@@ -141,7 +141,7 @@ func (c *InputCursor) setInput(name string, value *string) (*InputCursor, error)
 	}
 
 	inputField = currInput.(*InputField)
-	if !inputField.Enabled(c.tags...) {
+	if !inputField.Enabled(true, c.tags...) {
 		return cursor, fmt.Errorf(
 			"input field '%s' is disabled", name)
 	}

@@ -125,7 +125,7 @@ func (f *InputField) Optional() bool {
 }
 
 // out: whether this field is enabled
-func (f *InputField) Enabled(tags ...string) bool {
+func (f *InputField) Enabled(evaluate bool, tags ...string) bool {
 
 	var (
 		enabled bool
@@ -145,7 +145,7 @@ func (f *InputField) Enabled(tags ...string) bool {
 	} else {
 		enabled = true
 	}
-	if enabled && len(f.postFieldConditions) > 0 {
+	if evaluate && enabled && len(f.postFieldConditions) > 0 {
 		for _, c := range f.postFieldConditions {
 			if value = c.field.Value(); value != nil {
 				hasValue := false
