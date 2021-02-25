@@ -243,7 +243,7 @@ func (tf *TextForm) GetInput(
 					// if values are restrcted to a given list then
 					// create a list of auto-completion hints only
 					// with those values
-					hintValues = append(values)
+					hintValues = values
 					if value != nil {
 						suggestion = *value
 					} else {
@@ -359,19 +359,19 @@ func (tf *TextForm) ShowInputReference(
 			// output description of a group of
 			// inputs which are mutually exclusive
 
-			fmt.Printf(padding)
+			fmt.Print(padding)
 			utils.RepeatString(" ", level*indentSpaces, os.Stdout)
 			fmt.Printf("* Provide one of the following for:\n\n")
 
 			levelIndent = strings.Repeat(" ", (level+1)*indentSpaces)
 
-			fmt.Printf(padding)
-			fmt.Printf(levelIndent)
-			fmt.Printf(input.Description())
+			fmt.Print(padding)
+			fmt.Print(levelIndent)
+			fmt.Print(input.Description())
 
 		} else {
 
-			fmt.Printf(tf.getInputLongDescription(
+			fmt.Print(tf.getInputLongDescription(
 				input,
 				fieldShowOption,
 				padding, "* ",
@@ -443,7 +443,7 @@ func (tf *TextForm) printFormHeader(
 
 	if len(tf.heading) > 0 {
 		l := len(padding)
-		s, _ := utils.FormatMultilineString(tf.heading, l, width-l, true)
+		s, _ := utils.FormatMultilineString(tf.heading, l, width-l, true, true)
 		fmt.Print(color.OpItalic.Render(s))
 		fmt.Println()
 	}
@@ -486,7 +486,7 @@ func (tf *TextForm) getInputLongDescription(
 				if field.Sensitive() {
 					out.WriteString("****")
 				} else {
-					output, _ = utils.FormatMultilineString(*value, l, width-l, false)
+					output, _ = utils.FormatMultilineString(*value, l, width-l, false, true)
 					out.WriteString(output)
 				}
 			} else {
@@ -497,13 +497,15 @@ func (tf *TextForm) getInputLongDescription(
 		out.WriteString("\n")
 		description, _ := utils.FormatMultilineString(
 			color.OpFuzzy.Render(input.LongDescription()),
-			l, width-l, true)
+			l, width-l, true, true)
 		out.WriteString(description)
 	} else {
 		out.WriteString(" - ")
 
 		l = len(out.String())
-		description, _ := utils.FormatMultilineString(input.LongDescription(), l, width-l, false)
+		description, _ := utils.FormatMultilineString(
+			input.LongDescription(), 
+			l, width-l, false, true)
 		out.WriteString(description)
 
 		if fieldShowOption == DescAndDefaults && input.Type() != forms.Container {
@@ -512,10 +514,14 @@ func (tf *TextForm) getInputLongDescription(
 					out.WriteString("\n")
 
 					if field.Sensitive() {
-						output, _ = utils.FormatMultilineString("(Default value = '****')", l, width-l, true)
+						output, _ = utils.FormatMultilineString(
+							"(Default value = '****')", 
+							l, width-l, true, true)
 						out.WriteString(output)
 					} else {
-						output, _ = utils.FormatMultilineString(fmt.Sprintf("(Default value = '%s')", *value), l, width-l, true)
+						output, _ = utils.FormatMultilineString(
+							fmt.Sprintf("(Default value = '%s')", *value), 
+							l, width-l, true, true)
 						out.WriteString(output)
 					}
 				}

@@ -96,7 +96,8 @@ var _ = Describe("Text Formatting tests", func() {
 
 				// close piped output
 				os.Stdout.Close()
-				io.Copy(&output, stdOutReader)
+				err = io.Copy(&output, stdOutReader)
+				Expect(err).NotTo(HaveOccurred())
 
 				// signal end
 				out <- output.String()
