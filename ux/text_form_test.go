@@ -96,7 +96,7 @@ var _ = Describe("Text Formatting tests", func() {
 
 				// close piped output
 				os.Stdout.Close()
-				err = io.Copy(&output, stdOutReader)
+				_, err = io.Copy(&output, stdOutReader)
 				Expect(err).NotTo(HaveOccurred())
 
 				// signal end
@@ -116,13 +116,13 @@ var _ = Describe("Text Formatting tests", func() {
 
 		It("outputs a detailed input data form with field values", func() {
 
-			inputGroup.SetFieldValue("attrib12", "value for attrib12")
-			inputGroup.SetFieldValue("attrib122", "value for attrib122")
-			inputGroup.SetFieldValue("attrib1221", "value for attrib1221")
-			inputGroup.SetFieldValue("attrib131", "value for attrib131")
-			inputGroup.SetFieldValue("attrib1311", "value for attrib1311")
-			inputGroup.SetFieldValue("attrib1312", "value for attrib1311")
-			inputGroup.SetFieldValue("attrib14", "value for attrib14")
+			_ = inputGroup.SetFieldValue("attrib12", "value for attrib12")
+			_ = inputGroup.SetFieldValue("attrib122", "value for attrib122")
+			_ = inputGroup.SetFieldValue("attrib1221", "value for attrib1221")
+			_ = inputGroup.SetFieldValue("attrib131", "value for attrib131")
+			_ = inputGroup.SetFieldValue("attrib1311", "value for attrib1311")
+			_ = inputGroup.SetFieldValue("attrib1312", "value for attrib1311")
+			_ = inputGroup.SetFieldValue("attrib14", "value for attrib14")
 
 			testFormOutput(ux.DescAndValues, testFormOutputWithValues)
 		})
@@ -169,7 +169,7 @@ var _ = Describe("Text Formatting tests", func() {
 
 					prompt := expected[:i]
 					input := expected[i+2:]
-					stdInWriter.WriteString(input + "\n")
+					_, _ = stdInWriter.WriteString(input + "\n")
 					if read {
 						readOutput(expected)
 					}
