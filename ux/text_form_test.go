@@ -160,7 +160,7 @@ var _ = Describe("Text Formatting tests", func() {
 					Fail(fmt.Sprintf("TextFrom GetInput() did not output expected string '%s'.", expected))
 				}
 				actual = outputReader.Text()
-				logger.TraceMessage("expect> %s\n", actual)
+				logger.DebugMessage("expect> %s\n", actual)
 			}
 
 			for expectReader.Scan() {
