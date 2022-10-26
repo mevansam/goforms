@@ -1,6 +1,6 @@
 module github.com/mevansam/goforms
 
-go 1.18
+go 1.19
 
 replace github.com/mevansam/goutils => ../goutils
 
