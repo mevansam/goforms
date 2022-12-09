@@ -1,7 +1,11 @@
 package forms
 
+import "sync"
+
 type InputCollection struct {
 	groups map[string]*InputGroup
+
+	icMx sync.Mutex
 }
 
 func NewInputCollection() *InputCollection {
@@ -14,6 +18,9 @@ func (ic *InputCollection) NewGroup(
 	name string,
 	description string,
 ) *InputGroup {
+
+	ic.icMx.Lock()
+	defer ic.icMx.Unlock()
 
 	ig := &InputGroup{
 		name:        name,
@@ -30,15 +37,23 @@ func (ic *InputCollection) NewGroup(
 }
 
 func (ic *InputCollection) HasGroup(name string) bool {
+	ic.icMx.Lock()
+	defer ic.icMx.Unlock()
+
 	_, exists := ic.groups[name]
 	return exists
 }
 
 func (ic *InputCollection) Group(name string) *InputGroup {
+	ic.icMx.Lock()
+	defer ic.icMx.Unlock()
+
 	return ic.groups[name]
 }
 
 func (ic *InputCollection) Groups() []*InputGroup {
+	ic.icMx.Lock()
+	defer ic.icMx.Unlock()
 
 	groupList := []*InputGroup{}
 	for _, g := range ic.groups {
