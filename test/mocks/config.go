@@ -96,3 +96,20 @@ func (f *FakeConfig) IsValid() bool {
 func (f *FakeConfig) Reset() {
 	f.InitConfig(f.inputGroup.Name(), f.inputGroup.Description())
 }
+
+func (f *FakeConfig) GetVars(vars map[string]string) error {
+
+	var (
+		field *forms.InputField
+		value *string
+	)
+
+	if f.inputGroup != nil {
+		for _, field = range f.inputGroup.InputFields() {
+			if value = field.Value(); value != nil {
+				vars[field.Name()] = *value
+			}
+		}
+	}
+	return nil
+}
