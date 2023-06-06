@@ -2,7 +2,6 @@ package forms
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"regexp"
@@ -328,7 +327,7 @@ func (f *InputField) SetValue(value *string) error {
 
 	if f.valueFromFile {
 		// extract value from file
-		if buf, err = ioutil.ReadFile(*value); err != nil {
+		if buf, err = os.ReadFile(*value); err != nil {
 			return err
 		}
 
