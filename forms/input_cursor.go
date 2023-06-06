@@ -43,6 +43,20 @@ func NewInputCursor(
 // advances the cursor to the next input
 func (c *InputCursor) NextInput() *InputCursor {
 
+	numInputs := len(c.group.Inputs())
+	if c.index >= 0 && c.index < numInputs {
+		currInput := c.group.Inputs()[c.index]
+		if currInput.Type() != Container && len(currInput.Inputs()) > 0 {
+			// curr input has dependents. so update 
+			// cursor to point to the dependents.
+			return &InputCursor{
+				parents: append([]*InputCursor{c}, c.parents...),
+				group:   currInput,
+				index:   0,
+			}
+		}
+	}
+
 	cursor := c
 	for {
 
@@ -67,7 +81,7 @@ func (c *InputCursor) NextInput() *InputCursor {
 // out: input at current cursor position
 func (c *InputCursor) GetCurrentInput() (Input, error) {
 	if c.index == -1 {
-		return nil, fmt.Errorf("cursor is needs to be advanced before retrieving input")
+		return nil, fmt.Errorf("cursor needs to be advanced before retrieving input")
 	} else {
 		return c.group.Inputs()[c.index], nil
 	}
