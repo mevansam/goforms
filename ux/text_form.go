@@ -289,7 +289,13 @@ func (tf *TextForm) GetInput(
 			}
 
 			line.SetCompleter(func(line string) []string {
-				return hintValues
+				filteredHintValues := []string{}
+				for _, v := range hintValues {
+					if strings.HasPrefix(v, strings.ToLower(line)) {
+						filteredHintValues = append(filteredHintValues, v)
+					}
+				}
+				return filteredHintValues
 			})
 			if response, err = line.PromptWithSuggestion(prompt, suggestion, -1); err != nil {
 				return err
