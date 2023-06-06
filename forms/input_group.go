@@ -322,7 +322,7 @@ func (g *InputGroup) newInputField(
 		field.tags = tags
 	}
 
-	if dependsOn != nil && len(dependsOn) > 0 {
+	if len(dependsOn) > 0 {
 
 		// recursively add field to all
 		// inputs that it depends on
@@ -444,6 +444,71 @@ func (g *InputGroup) addInputField(
 		}
 	}
 	return nil
+}
+
+func (g *InputGroup) String() string {
+
+	var (
+		err error
+
+		out strings.Builder
+		val *string
+
+		writeFieldList func([]Input, string)
+
+		inputField *InputField
+	)
+
+	out.WriteString("Input Form: ")
+	out.WriteString(g.name)
+	out.WriteString(" - ")
+	out.WriteString(g.description)
+	out.WriteRune('\n')
+	out.WriteString("  * Fields:\n")	
+
+	writeFieldList = func(fields []Input, indent string) {
+		last := len(fields) - 1
+		for i, input := range fields {			
+			out.WriteString(indent)
+			if i == last {
+				out.WriteString("└─")
+			} else {
+				out.WriteString("├─")
+			}
+			out.WriteString(input.Name())
+			
+			if input.Type() != Container {
+				if inputField, err = g.GetInputField(input.Name()); err == nil {
+					if val = inputField.Value(); val != nil {
+						out.WriteString(" = ")
+						out.WriteString(*val)
+					}
+					out.WriteString(" : conditions[")
+					for j, c := range inputField.postFieldConditions {
+						if j > 0 {
+							out.WriteString(", ")
+						}
+						out.WriteString(c.field.Name())
+						out.WriteRune('=')
+						out.WriteString(fmt.Sprintf("%+q", c.values))
+					}
+					out.WriteRune(']')
+					out.WriteString(fmt.Sprintf("; tags%+q", inputField.tags))
+				} else {
+					out.WriteString(err.Error())
+				}				
+			}
+			
+			out.WriteRune('\n')
+			if i == last {
+				writeFieldList(input.Inputs(), indent+"  ")
+			} else {
+				writeFieldList(input.Inputs(), indent+"│ ")
+			}			
+		}
+	}
+	writeFieldList(g.inputs, "    ")
+	return out.String()
 }
 
 // interface: Input
@@ -584,7 +649,7 @@ func (g *InputGroup) GetFieldValueHints(name string) ([]string, error) {
 	)
 
 	hintValues := []string{}
-	if hints := g.fieldValueLookupHints[name]; hints != nil && len(hints) > 0 {
+	if hints := g.fieldValueLookupHints[name]; len(hints) > 0 {
 
 		for _, hint := range hints {
 			matchIndices := hintRegex.FindAllStringSubmatchIndex(hint, -1)
@@ -607,11 +672,11 @@ func (g *InputGroup) GetFieldValueHints(name string) ([]string, error) {
 					if err = json.Unmarshal([]byte(*value), &fieldData); err == nil {
 						if hintData, err = utils.GetValueAtPath(fieldPath, fieldData); err == nil {
 
-							switch hintData.(type) {
+							switch data := hintData.(type) {
 							case string:
 								hintValues = append(hintValues, hintData.(string))
 							case []interface{}:
-								for _, v := range hintData.([]interface{}) {
+								for _, v := range data {
 									hintValues = append(hintValues, fmt.Sprintf("%v", v))
 								}
 							default:
