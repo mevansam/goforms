@@ -2,7 +2,7 @@ module github.com/mevansam/goforms
 
 go 1.19
 
-replace github.com/mevansam/goutils => ../goutils
+// replace github.com/mevansam/goutils => ../goutils
 
 require (
 	github.com/gookit/color v1.5.0
