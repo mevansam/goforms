@@ -6,7 +6,7 @@ replace github.com/mevansam/goutils => ../goutils
 
 require (
 	github.com/gookit/color v1.5.0
-	github.com/mevansam/goutils v0.0.0-00010101000000-000000000000
+	github.com/mevansam/goutils v0.0.1
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	github.com/peterh/liner v1.2.2
